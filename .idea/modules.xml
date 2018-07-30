@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/erent.iml" filepath="$PROJECT_DIR$/erent.iml" />
+      <module fileurl="file://$PROJECT_DIR$/erent_android.iml" filepath="$PROJECT_DIR$/erent_android.iml" />
+    </modules>
+  </component>
+</project>
