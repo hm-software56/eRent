@@ -190,6 +190,8 @@ class RegisterState extends State<Register> {
                       this._data.email = value;
                     }),
                 TextFormField(
+                  maxLines: 3,
+                  keyboardType:TextInputType.multiline,
                     decoration: InputDecoration(
                         hintText: 'ທີ​ຢູ່', labelText: '​ປ້ອນທີ​ຢູ່​ທ່ານ'),
                     onSaved: (var value) {
