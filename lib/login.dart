@@ -43,7 +43,7 @@ class LoginState extends State<Login> {
         body: {'email': ctrlUsername.text, 'password': ctrlPassword.text});
     if (response.statusCode == 200) {
       var jsonResponse = json.decode(response.body);
-      print(jsonResponse);
+      //print(jsonResponse);
       setState(() {
         isLoading = false;
       });
@@ -74,19 +74,19 @@ class LoginState extends State<Login> {
         barrierDismissible: false, // user must tap button!
         builder: (BuildContext context) {
           return new AlertDialog(
-            title: new Text('ອີນ​ເຕີ​ເນັດຜິດ​ພາດ'),
+            title: Center(child: new Text('ອີນ​ເຕີ​ເນັດຜິດ​ພາດ')),
             content: new SingleChildScrollView(
               child: new ListBody(
                 children: <Widget>[
-                  new Text('ກວດ​ການ​ເຊື່ອມ​ຕໍ່​ເນັດ​ທ່ານ........'),
+                  Center(child: new Text('ກວດ​ເບີ່ງການ​ເຊື່ອມ​ຕໍ່​ເນັດ​ທ່ານ')),
                 ],
               ),
             ),
             actions: <Widget>[
               new FlatButton(
                 child: new Text(
-                  '​ຕົ​ກ​ລົງ',
-                  style: TextStyle(color: Colors.red),
+                  'ປິດ>>',
+                  style: TextStyle(color: Colors.red, fontSize: 20.0),
                 ),
                 onPressed: () {
                   Navigator.of(context).pop();
@@ -129,10 +129,10 @@ class LoginState extends State<Login> {
       controller: ctrlUsername,
       keyboardType: TextInputType.emailAddress,
       decoration: InputDecoration(
-        labelText: "Email Address",
-        prefixIcon: Icon(Icons.email),
-        contentPadding: EdgeInsets.fromLTRB(10.0, 10.0, 10.0, 10.0),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+        labelText: "ອີ​ເມວ ຫຼື ເບີ​ໂທ",
+        ////prefixIcon: Icon(Icons.email),
+        //contentPadding: EdgeInsets.fromLTRB(10.0, 10.0, 10.0, 10.0),
+       // border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
       ),
     );
 
@@ -140,16 +140,16 @@ class LoginState extends State<Login> {
       controller: ctrlPassword,
       obscureText: true,
       decoration: InputDecoration(
-        prefixIcon: Icon(Icons.vpn_key),
-        labelText: 'Password',
-        contentPadding: EdgeInsets.fromLTRB(10.0, 10.0, 10.0, 10.0),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+       // prefixIcon: Icon(Icons.vpn_key),
+        labelText: 'ລະ​ຫັດ​ຜ່ານ',
+       // contentPadding: EdgeInsets.fromLTRB(10.0, 10.0, 10.0, 10.0),
+       // border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
       ),
     );
 
     final loginButton = Material(
-      borderRadius: BorderRadius.circular(10.0),
-      shadowColor: Colors.lightBlueAccent.shade100,
+      borderRadius: BorderRadius.circular(5.0),
+      //shadowColor: Colors.red,
       elevation: 5.0,
       child: MaterialButton(
         minWidth: 200.0,
@@ -157,7 +157,7 @@ class LoginState extends State<Login> {
         onPressed: () {
           doLogin();
         },
-        color: Colors.lightBlueAccent,
+        color: Colors.red,
         child: Text('​ເຂົ້າ​ລະ​ບົບ', style: TextStyle(color: Colors.white)),
       ),
     );

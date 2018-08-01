@@ -54,14 +54,49 @@ class HomeState extends State<Home> {
 
     if (response.statusCode == 200) {
       var jsonResponse = json.decode(response.body);
-      print(jsonResponse);
+      //print(jsonResponse);
 
       setState(() {
         isLoading = false;
         listhouses = jsonResponse['rows'];
       });
     } else {
-      print('Error cooneted.....');
+      setState(() {
+        isLoading = false;
+      });
+      print('Error cooneted.');
+      showDialog<Null>(
+        context: context,
+        barrierDismissible: false, // user must tap button!
+        builder: (BuildContext context) {
+          return new AlertDialog(
+            title: Center(
+                child: new Text(
+              'ອີນ​ເຕີ​ເນັດຜິດ​ພາດ',
+            )),
+            content: new SingleChildScrollView(
+              child: new ListBody(
+                children: <Widget>[
+                  Center(
+                      child:
+                          new Text('ກວດເບີ່ງ​ການ​​ເຊື່ອມ​ຕໍ່​ເນັດ​ຂອງ​ທ່ານ')),
+                  FlatButton(
+                    child: Center(
+                      child: new Text(
+                        '​ປິດ>>',
+                        style: TextStyle(color: Colors.red, fontSize: 20.0),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
     }
   }
 
@@ -116,7 +151,9 @@ class HomeState extends State<Home> {
               style: TextStyle(fontSize: 12.0),
             ),
             trailing: Icon(Icons.keyboard_arrow_right),
-            onTap: () {},
+            onTap: () {
+               Navigator.of(context).pushNamed('/listhouseuser');
+            },
           ),
           ListTile(
             leading: Icon(
@@ -198,7 +235,7 @@ class HomeState extends State<Home> {
                               context,
                               MaterialPageRoute(
                                   builder: (context) =>
-                                      ViewHouse(listhouses[index]['id'])));
+                                      ViewHouse(listhouses[index]['id'],listhouses[index]['did'])));
                         },
                         leading: Image(
                           image: NetworkImage(

@@ -1,3 +1,4 @@
+import 'package:erent/forms/listhouse_user.dart';
 import 'package:flutter/material.dart';
 import 'package:erent/login.dart';
 import 'package:erent/home.dart';
@@ -10,11 +11,13 @@ class MyApp extends StatelessWidget {
     '/login': (context) => Login(),
     '/home': (context) => Home(),
     '/register':(context) =>Register(),
+    '/listhouseuser':(context) =>ListhouseUser(),
+    
   };
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-
+     
     return new MaterialApp(
       title: 'eRent',
       theme: new ThemeData(
