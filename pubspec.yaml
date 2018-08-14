@@ -17,6 +17,9 @@ dependencies:
   zoomable_image: ^1.2.0
   transparent_image: ^0.1.0
   carousel: ^0.1.0
+  image_picker: ^0.4.6
+  dio: ^1.0.0
+  flutter_one_signal: ^0.2.1
 
 dev_dependencies:
   flutter_test:

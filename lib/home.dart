@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_one_signal/flutter_one_signal.dart';
+import 'package:dio/dio.dart';
 
 class Home extends StatefulWidget {
   HomeState createState() => HomeState();
@@ -17,6 +19,35 @@ class HomeState extends State<Home> {
   var getusername;
   var getfirstname;
 
+/* ====================== Onsigal Push notifycation ============================= */
+  _initOneSignal() async {
+    var notificationsPermissionGranted = await FlutterOneSignal.startInit(
+        appId: '321b77aa-e8ff-4922-a91f-c6a9ed89bffe',
+        // todo Replace with your own, this won't work for you
+        notificationOpenedHandler: (notification) {
+          print('opened notification: $notification');
+          Navigator.of(context).pushNamed('/home');
+        },
+        notificationReceivedHandler: (notification) {
+          print('received notification: $notification');
+        });
+    FlutterOneSignal.sendTag('userId', 'demoUserId');
+    var payerID = await FlutterOneSignal.getUserId();
+    
+    Dio dio = new Dio();
+    dio.options.connectTimeout = 5000; //5s
+    dio.options.receiveTimeout = 3000;
+
+    FormData formData = new FormData.from({
+      'payerID': payerID,
+    });
+    var response = await dio.post(
+        "${UrlApi().url}/index.php/api/userpayer?id=${gettoken}",
+        data: formData);
+    print(response);
+  }
+
+  /*======================Get User Login ========================*/
   Future<Null> getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var token = await prefs.get('token');
@@ -27,6 +58,7 @@ class HomeState extends State<Home> {
       gettoken = token;
       getusername = datauser;
       getfirstname = firstname;
+      _initOneSignal();
     });
   }
 
@@ -152,7 +184,7 @@ class HomeState extends State<Home> {
             ),
             trailing: Icon(Icons.keyboard_arrow_right),
             onTap: () {
-               Navigator.of(context).pushNamed('/listhouseuser');
+              Navigator.of(context).pushNamed('/listhouseuser');
             },
           ),
           ListTile(
@@ -234,14 +266,17 @@ class HomeState extends State<Home> {
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) =>
-                                      ViewHouse(listhouses[index]['id'],listhouses[index]['did'])));
+                                  builder: (context) => ViewHouse(
+                                      listhouses[index]['id'],
+                                      listhouses[index]['did'])));
                         },
                         leading: Image(
-                          image: NetworkImage(
-                            '${UrlApi().url}/images/'
-                                '${listhouses[index]['photo_name']}',
-                          ),
+                          image: (listhouses[index]['photo_name'] == null)
+                              ? AssetImage('assets/img/logo.jpg')
+                              : NetworkImage(
+                                  '${UrlApi().url}/images/small/'
+                                      '${listhouses[index]['photo_name']}',
+                                ),
                           width: 100.0,
                           height: 100.0,
                           fit: BoxFit.cover,

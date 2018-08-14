@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:dio/dio.dart';
+import 'package:erent/forms/properties_form.dart';
+import 'package:erent/forms/properties_formedit.dart';
 import 'package:erent/forms/viewproperties.dart';
-import 'package:erent/viewhouse.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:erent/url_api.dart';
@@ -15,6 +17,8 @@ class ListhouseUser extends StatefulWidget {
 class ListhouseUserState extends State<ListhouseUser> {
   bool isLoading = true;
   var listhouse;
+
+  final GlobalKey<ScaffoldState> _scoffoldKey = new GlobalKey<ScaffoldState>();
   Future<Null> getlisthouses() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var userid = await prefs.get('token');
@@ -69,6 +73,22 @@ class ListhouseUserState extends State<ListhouseUser> {
     }
   }
 
+  Future getdelete(var houseID) async {
+    Dio dio = new Dio();
+    Response response = await dio
+        .delete("${UrlApi().url}/index.php/api/propertiesdelet?id=${houseID}");
+
+    _scoffoldKey.currentState.showSnackBar(new SnackBar(
+      backgroundColor: Colors.red,
+      content: new Row(
+        children: <Widget>[Text('ລາຍ​ກາ​ນ​ຖືກ​ລືບ​ແລ້ວ.....')],
+      ),
+    ));
+    setState(() {
+      getlisthouses();
+    });
+  }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -79,12 +99,19 @@ class ListhouseUserState extends State<ListhouseUser> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scoffoldKey,
       appBar: AppBar(
         title: Text('ໂຄ​ສະ​ນາ​ເຮືອ​ນ'),
         actions: <Widget>[
           IconButton(
             color: Colors.white,
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      fullscreenDialog: true,
+                      builder: (context) => PropertiesForm()));
+            },
             icon: Icon(Icons.add_box),
           )
         ],
@@ -103,16 +130,18 @@ class ListhouseUserState extends State<ListhouseUser> {
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                fullscreenDialog: true,
+                                  fullscreenDialog: true,
                                   builder: (context) => ViewProperties(
                                       listhouse[index]['id'],
                                       listhouse[index]['did'])));
                         },
                         leading: Image(
-                          image: NetworkImage(
-                            '${UrlApi().url}/images/'
-                                '${listhouse[index]['photo_name']}',
-                          ),
+                          image: (listhouse[index]['photo_name'] == null)
+                              ? AssetImage('assets/img/logo.jpg')
+                              : NetworkImage(
+                                  '${UrlApi().url}/images/small/'
+                                      '${listhouse[index]['photo_name']}',
+                                ),
                           width: 100.0,
                           height: 100.0,
                           fit: BoxFit.cover,
@@ -136,9 +165,31 @@ class ListhouseUserState extends State<ListhouseUser> {
                                       '​ບໍ່ຫວ່າງ',
                                       style: TextStyle(color: Colors.red),
                                     ),
-                              Text('ລາ​ຄາ:${listhouse[index]['fee']}/$per')
+                              Text('ລາ​ຄາ:${listhouse[index]['fee']}/$per'),
                             ]),
-                        trailing: Icon(Icons.keyboard_arrow_right),
+                        trailing: Column(children: <Widget>[
+                          IconButton(
+                            color: Colors.red,
+                            icon: Icon(Icons.delete_forever),
+                            onPressed: () {
+                              getdelete(listhouse[index]['id']);
+                            },
+                          ),
+                          Text(''),
+                          IconButton(
+                            color: Colors.blue,
+                            icon: Icon(Icons.border_color),
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      fullscreenDialog: true,
+                                      builder: (context) => PropertiesFormedit(
+                                          listhouse[index]['id'],
+                                          listhouse[index]['did'])));
+                            },
+                          ),
+                        ]),
                       ),
                       Divider()
                     ],

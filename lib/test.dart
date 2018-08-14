@@ -1,91 +1,95 @@
 import 'package:flutter/material.dart';
-import 'package:photo_view/photo_view.dart';
-import 'package:carousel/carousel.dart';
 
-class Test extends StatelessWidget {
-  var imageUrl = "https://images.unsplash.com/photo-1495249737766-5aa052764eff?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=7d968dee23958e5a65a99699c1a4ba05&auto=format&fit=crop&w=1500&q=80";
-var imageUrl2 = "https://images.unsplash.com/photo-1522891735718-6a86a483c165?ixlib=rb-0.3.5&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=300&h=200&fit=crop&ixid=eyJhcHBfaWQiOjF9&s=99553e144acd1557b378071c47042188";
+class CustomRadio extends StatefulWidget {
+  @override
+  createState() {
+    return new CustomRadioState();
+  }
+}
+
+class CustomRadioState extends State<CustomRadio> {
+  List<RadioModel> sampleData = new List<RadioModel>();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    sampleData.add(new RadioModel(false, 'A', 'April 18'));
+    sampleData.add(new RadioModel(false, 'B', 'April 17'));
+    sampleData.add(new RadioModel(false, 'C', 'April 16'));
+    sampleData.add(new RadioModel(false, 'D', 'April 15'));
+    sampleData.add(new RadioModel(false, 'E', 'April 20'));
+  }
 
   @override
   Widget build(BuildContext context) {
-   return new Container(
-      child: new Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text("ListItem"),
+      ),
+      body: new ListView.builder(
+        itemCount: sampleData.length,
+        itemBuilder: (BuildContext context, int index) {
+          return new InkWell(
+            //highlightColor: Colors.red,
+            splashColor: Colors.blueAccent,
+            onTap: () {
+              setState(() {
+                sampleData.forEach((element) => element.isSelected = false);
+                sampleData[index].isSelected = true;
+              });
+            },
+            child: new RadioItem(sampleData[index]),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class RadioItem extends StatelessWidget {
+  final RadioModel _item;
+  RadioItem(this._item);
+  @override
+  Widget build(BuildContext context) {
+    return new Container(
+      margin: new EdgeInsets.all(15.0),
+      child: new Row(
+        mainAxisSize: MainAxisSize.max,
         children: <Widget>[
-          new Expanded(child:  new Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              new Center(
-                  child:  new RaisedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          new MaterialPageRoute(builder: (context) => new ImageViewScreen(imageUrl2)),
-                        );
-                      },
-                      color: Colors.green,
-                      child: new Text("open small image",
-                        style: new TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold
-                        ),)
-                  )
-              ),
-              new Center(
-                  child:  new RaisedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          new MaterialPageRoute(builder: (context) => new ImageViewScreen(imageUrl)),
-                        );
-                      },
-                      color: Colors.green,
-                      child: new Text("open large image",
-                        style: new TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold
-                        ),)
-                  )
-              ),
-            ],
-          ))
-
-
+          new Container(
+            height: 30.0,
+            width: 30.0,
+            child: new Center(
+              child:  _item.isSelected? Icon(Icons.done):Text(''),
+                  
+            ),
+            decoration: new BoxDecoration(
+              color: _item.isSelected
+                  ? Colors.red
+                  : Colors.transparent,
+              border: new Border.all(
+                  width: 1.0,
+                  color: _item.isSelected
+                      ? Colors.red
+                      : Colors.grey),
+              borderRadius: const BorderRadius.all(const Radius.circular(2.0)),
+            ),
+          ),
+          new Container(
+            margin: new EdgeInsets.only(left: 10.0),
+            child: new Text(_item.text),
+          )
         ],
       ),
     );
   }
 }
 
+class RadioModel {
+  bool isSelected;
+  final String buttonText;
+  final String text;
 
-class ImageViewScreen extends StatelessWidget {
-  final String imageAddress;
-
-  ImageViewScreen(this.imageAddress);
-
-
-  @override
-  Widget build(BuildContext context) {
-    return new Container(
-        child: new PhotoView(
-          imageProvider: new NetworkImage(imageAddress),
-          loadingChild: new LoadingText(),
-          backgroundColor: Colors.white,
-          minScale: 0.1,
-          maxScale: 4.0,
-        )
-    );
-  }
-
-}
-
-class LoadingText extends StatelessWidget{
-  @override
-  Widget build(BuildContext context) {
-    return new Text("Loading",
-      style: new TextStyle(
-          color: Colors.white
-      ),
-    );
-  }
+  RadioModel(this.isSelected, this.buttonText, this.text);
 }

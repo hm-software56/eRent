@@ -47,7 +47,7 @@ class ViewHouseState extends State<ViewHouse> {
         // List ListPhoroCarousel = List();
         for (var item in listphotos) {
           ListPhoroCarousel
-              .add(NetworkImage('${UrlApi().url}/images/${item['name']}'));
+              .add(NetworkImage('${UrlApi().url}/images/small/${item['name']}'));
         }
       });
     } else {
@@ -147,7 +147,7 @@ class ViewHouseState extends State<ViewHouse> {
                             fit: BoxFit.cover,
                             height: 250.0,
                             image: NetworkImage(
-                              '${UrlApi().url}/images/'
+                              '${UrlApi().url}/images/small/'
                                   '${detailhouse[0]['photo_name']}',
                             ),
                           ),
