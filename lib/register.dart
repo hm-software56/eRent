@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:erent/url_api.dart';
 import 'package:flutter/material.dart';
 import 'package:validate/validate.dart';
@@ -68,13 +70,6 @@ class RegisterState extends State<Register> {
     if (this._formKey.currentState.validate()) {
       _formKey.currentState.save(); // Save our form now.
 
-      /*print('Printing the register data.');
-      print('Email: ${_data.email}');
-      print('Firstname: ${_data.firstname}');
-      print('lastname: ${_data.lastname}');
-      print('phone: ${_data.phone}');
-      print('Adress: ${_data.address}');*/
-
       setState(() {
         isLoading = true;
       });
@@ -88,7 +83,7 @@ class RegisterState extends State<Register> {
       });
       if (response.statusCode == 200) {
         var jsonResponse = json.decode(response.body);
-        print(jsonResponse);
+        // print(jsonResponse);
         setState(() {
           isLoading = false;
         });
@@ -124,11 +119,11 @@ class RegisterState extends State<Register> {
         });
 
         _scoffoldKey.currentState.showSnackBar(new SnackBar(
-            backgroundColor: Colors.red,
-            content: new Row(
-              children: <Widget>[Text('​ມີຂໍ້​ຜິດ​ພາດ​ທາງເຊີ​ເວີ.!')],
-            ),
-          ));
+          backgroundColor: Colors.red,
+          content: new Row(
+            children: <Widget>[Text('​ມີຂໍ້​ຜິດ​ພາດ​ທາງເຊີ​ເວີ.!')],
+          ),
+        ));
         print("Not connection data");
       }
     }
@@ -190,17 +185,20 @@ class RegisterState extends State<Register> {
                       this._data.email = value;
                     }),
                 TextFormField(
-                  maxLines: 3,
-                  keyboardType:TextInputType.multiline,
+                    maxLines: 3,
+                    keyboardType: TextInputType.multiline,
                     decoration: InputDecoration(
                         hintText: 'ທີ​ຢູ່', labelText: '​ປ້ອນທີ​ຢູ່​ທ່ານ'),
                     onSaved: (var value) {
                       this._data.address = value;
                     }),
-                    Padding(
-                      padding: isLoading?EdgeInsets.only(top: 20.0, bottom:5.0):EdgeInsets.all(1.0),
-                      child: Center(child: isLoading ? CircularProgressIndicator() : null),
-                    ),
+                Padding(
+                  padding: isLoading
+                      ? EdgeInsets.only(top: 20.0, bottom: 5.0)
+                      : EdgeInsets.all(1.0),
+                  child: Center(
+                      child: isLoading ? CircularProgressIndicator() : null),
+                ),
                 Container(
                   width: screenSize.width,
                   child: RaisedButton(
@@ -213,7 +211,6 @@ class RegisterState extends State<Register> {
                   ),
                   margin: EdgeInsets.only(top: 20.0),
                 ),
-                
               ],
             ),
           )),

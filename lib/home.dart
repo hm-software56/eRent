@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_one_signal/flutter_one_signal.dart';
 import 'package:dio/dio.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class Home extends StatefulWidget {
   HomeState createState() => HomeState();
@@ -33,7 +34,7 @@ class HomeState extends State<Home> {
         });
     FlutterOneSignal.sendTag('userId', 'demoUserId');
     var payerID = await FlutterOneSignal.getUserId();
-    
+
     Dio dio = new Dio();
     dio.options.connectTimeout = 5000; //5s
     dio.options.receiveTimeout = 3000;
@@ -44,7 +45,7 @@ class HomeState extends State<Home> {
     var response = await dio.post(
         "${UrlApi().url}/index.php/api/userpayer?id=${gettoken}",
         data: formData);
-    print(response);
+    //print(response);
   }
 
   /*======================Get User Login ========================*/
@@ -77,20 +78,27 @@ class HomeState extends State<Home> {
         context, MaterialPageRoute(builder: (context) => Login()));
   }
 
-  /// get List house
+  /*======================= get List house =========================*/
   var listhouses;
   bool isLoading = true;
-
+  var listhousesApi;
+  int alertcount = 0;
   Future<Null> getlisthouses() async {
     final response = await http.get('${UrlApi().url}/index.php/api/listhouse');
 
     if (response.statusCode == 200) {
       var jsonResponse = json.decode(response.body);
-      //print(jsonResponse);
-
+      Dio dio = new Dio();
+      dio.options.connectTimeout = 5000; //5s
+      dio.options.receiveTimeout = 3000;
+      var responsecountalert = await dio
+          .post("${UrlApi().url}/index.php/api/countalert?userid=${gettoken}");
+      //print(responsecountalert.data);
       setState(() {
         isLoading = false;
         listhouses = jsonResponse['rows'];
+        listhousesApi = jsonResponse['rows'];
+        alertcount = int.parse(responsecountalert.data);
       });
     } else {
       setState(() {
@@ -132,20 +140,121 @@ class HomeState extends State<Home> {
     }
   }
 
+//============== Search Appbar ================
+  Widget appBarTitle = new Text("ໜ້າ​ຫຼັກ");
+  Icon actionIcon = new Icon(Icons.search);
+  final TextEditingController _searchQuery = new TextEditingController();
+  var listsearchhouse;
+  bool ischeaching = false;
+  _SearchListState() {
+    if (_searchQuery.text.isEmpty) {
+      setState(() {
+        print('Search text empyt');
+        if (ischeaching == true) {
+          listhouses = listhousesApi;
+        }
+      });
+    } else {
+      setState(() {
+        List _listsearch = new List();
+        for (var item in listhousesApi) {
+          if (item['details']
+                  .toLowerCase()
+                  .contains(_searchQuery.text.toLowerCase()) ||
+              item['fee']
+                  .toLowerCase()
+                  .contains(_searchQuery.text.toLowerCase()) ||
+              item['type_name']
+                  .toLowerCase()
+                  .contains(_searchQuery.text.toLowerCase())) {
+            _listsearch.add(item);
+          }
+        }
+        listhouses = _listsearch.toSet().toList();
+        //print(listsearchhouse);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget appBar = AppBar(
-      title: Text('ໜ້າ​ຫຼັກ'),
+      title: appBarTitle,
       actions: <Widget>[
+        /*  ===============  Search ===============*/
         IconButton(
-          icon: Icon(Icons.settings_power),
+          icon: actionIcon,
           onPressed: () {
-            logOut();
+            setState(() {
+              if (this.actionIcon.icon == Icons.search) {
+                this.actionIcon = new Icon(Icons.close);
+                this.appBarTitle = new TextField(
+                  onChanged: (text) {
+                    _SearchListState();
+                  },
+                  controller: _searchQuery,
+                  style: new TextStyle(
+                    color: Colors.white,
+                  ),
+                  decoration: new InputDecoration(
+                      fillColor: Colors.greenAccent,
+                      prefixIcon: new Icon(Icons.search, color: Colors.white),
+                      hintText: "​ຄົ້ນ​ຫາ...",
+                      hintStyle: new TextStyle(color: Colors.white)),
+                );
+                _SearchListState();
+                ischeaching = true;
+              } else {
+                ischeaching = false;
+                _searchQuery.clear();
+                this.actionIcon = new Icon(Icons.search);
+                this.appBarTitle = new Text("ໜ້າ​ຫຼັກ");
+              }
+            });
           },
-        )
+        ),
+        /*==================Alert Push ===============*/
+        (alertcount != 0)
+            ? IconButton(
+                icon: new Stack(
+                  children: <Widget>[
+                    new Icon(
+                      Icons.add_alert,
+                      size: 30.0,
+                    ),
+                    new Positioned(
+                      height: 20.0,
+                      width: 20.0,
+                      top: 1.0,
+                      right: 0.0,
+                      child: new Stack(
+                        children: <Widget>[
+                          new Icon(Icons.brightness_1,
+                              // size: 15.0,
+                              color: Colors.green[800]),
+                          new Positioned(
+                            top: 5.0,
+                            right: 2.0,
+                            child: new Text('${alertcount}',
+                                style: new TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10.0,
+                                    fontWeight: FontWeight.w500)),
+                          )
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+                onPressed: () {
+                  Navigator.of(context).pushNamed('/listhouseuser');
+                },
+              )
+            : Text(''),
       ],
     );
 
+//================== menu left ========================
     Widget drawer = Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -238,12 +347,17 @@ class HomeState extends State<Home> {
           Divider(),
           ListTile(
             trailing: Icon(
-              Icons.exit_to_app,
+              Icons.settings_power,
               color: Colors.red,
             ),
-            title: Text('ປິດ'),
+            title: Text(
+              'ອອກ​ຈາກ​ລະ​ບົບ',
+              style: TextStyle(
+                fontSize: 20.0,
+              ),
+            ),
             onTap: () {
-              exit(0);
+              logOut();
             },
           ),
         ],
@@ -270,7 +384,16 @@ class HomeState extends State<Home> {
                                       listhouses[index]['id'],
                                       listhouses[index]['did'])));
                         },
-                        leading: Image(
+                        leading: CachedNetworkImage(
+                          width: 100.0,
+                          height: 100.0,
+                          fit: BoxFit.cover,
+                          imageUrl: '${UrlApi().url}/images/small/'
+                              '${listhouses[index]['photo_name']}',
+                          placeholder: new CircularProgressIndicator(),
+                          errorWidget: new Icon(Icons.error),
+                        ),
+                        /* Image(
                           image: (listhouses[index]['photo_name'] == null)
                               ? AssetImage('assets/img/logo.jpg')
                               : NetworkImage(
@@ -280,7 +403,7 @@ class HomeState extends State<Home> {
                           width: 100.0,
                           height: 100.0,
                           fit: BoxFit.cover,
-                        ),
+                        ),*/
                         title: Text('${listhouses[index]['type_name']}'),
                         subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,

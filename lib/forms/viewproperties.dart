@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel/carousel.dart';
 import 'package:erent/forms/package.dart';
 import 'package:erent/forms/properties_form.dart';
@@ -50,8 +51,7 @@ class ViewPropertiesState extends State<ViewProperties> {
         listphotos = jsonResponsephoto['photos'];
         // List ListPhoroCarousel = List();
         for (var item in listphotos) {
-          ListPhoroCarousel.add(
-              NetworkImage('${UrlApi().url}/images/small/${item['name']}'));
+           ListPhoroCarousel.add('${UrlApi().url}/images/small/${item['name']}'); 
         }
       });
     } else {
@@ -149,9 +149,12 @@ class ViewPropertiesState extends State<ViewProperties> {
                                                       builder: (context) =>
                                                           ViewPhoto(netImage)));
                                             },
-                                            child: Image(
-                                                image: netImage,
-                                                fit: BoxFit.fill)))
+                                            child: CachedNetworkImage(
+                                          imageUrl: netImage,
+                                          placeholder:
+                                              new CircularProgressIndicator(),
+                                          errorWidget: new Icon(Icons.error),
+                                        )))
                                         .toList(),
                                   ),
                                 ),
@@ -166,14 +169,12 @@ class ViewPropertiesState extends State<ViewProperties> {
                                               NetworkImage(
                                                   '${UrlApi().url}/images/${detailhouse[0]['photo_name']}'))));
                                 },
-                                child: Image(
-                                  fit: BoxFit.cover,
-                                  height: 250.0,
-                                  image: NetworkImage(
-                                    '${UrlApi().url}/images/small/'
-                                        '${detailhouse[0]['photo_name']}',
-                                  ),
-                                ),
+                                child: CachedNetworkImage(
+                                          imageUrl: '${UrlApi().url}/images/${detailhouse[0]['photo_name']}',
+                                          placeholder:
+                                              new CircularProgressIndicator(),
+                                          errorWidget: new Icon(Icons.error),
+                                        ),
                               ),
                         Divider(),
                         Text('${detailhouse[0]['details']}'),

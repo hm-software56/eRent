@@ -20,6 +20,16 @@ dependencies:
   image_picker: ^0.4.6
   dio: ^1.0.0
   flutter_one_signal: ^0.2.1
+  flutter_launcher_icons: ^0.6.0
+  flutter_map: ^0.0.11+1
+  cached_network_image: "^0.4.1"
+
+
+
+flutter_icons:
+  android: true
+  ios: true 
+  image_path: "assets/icon/app.png"
 
 dev_dependencies:
   flutter_test:
@@ -40,7 +50,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/img/
-  #  - images/a_dot_ham.jpeg
+    - assets/img/logo.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.io/assets-and-images/#resolution-aware.

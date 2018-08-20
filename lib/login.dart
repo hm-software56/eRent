@@ -116,7 +116,7 @@ class LoginState extends State<Login> {
       child: CircleAvatar(
         backgroundColor: Colors.transparent,
         radius: 48.0,
-        child: Image.asset('assets/img/logo.jpg'),
+        child: Image.asset('assets/img/logo.png'),
       ),
     );
 

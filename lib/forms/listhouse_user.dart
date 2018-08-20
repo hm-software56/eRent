@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:erent/forms/properties_form.dart';
 import 'package:erent/forms/properties_formedit.dart';
@@ -17,6 +18,7 @@ class ListhouseUser extends StatefulWidget {
 class ListhouseUserState extends State<ListhouseUser> {
   bool isLoading = true;
   var listhouse;
+  var userID;
 
   final GlobalKey<ScaffoldState> _scoffoldKey = new GlobalKey<ScaffoldState>();
   Future<Null> getlisthouses() async {
@@ -27,11 +29,10 @@ class ListhouseUserState extends State<ListhouseUser> {
 
     if (response.statusCode == 200) {
       var jsonResponse = json.decode(response.body);
-      //print(jsonResponse);
-
       setState(() {
         isLoading = false;
         listhouse = jsonResponse['rows'];
+        userID = userid;
       });
     } else {
       setState(() {
@@ -135,16 +136,14 @@ class ListhouseUserState extends State<ListhouseUser> {
                                       listhouse[index]['id'],
                                       listhouse[index]['did'])));
                         },
-                        leading: Image(
-                          image: (listhouse[index]['photo_name'] == null)
-                              ? AssetImage('assets/img/logo.jpg')
-                              : NetworkImage(
-                                  '${UrlApi().url}/images/small/'
-                                      '${listhouse[index]['photo_name']}',
-                                ),
+                        leading: CachedNetworkImage(
                           width: 100.0,
                           height: 100.0,
                           fit: BoxFit.cover,
+                          imageUrl: '${UrlApi().url}/images/small/'
+                              '${listhouse[index]['photo_name']}',
+                          placeholder: new CircularProgressIndicator(),
+                          errorWidget: new Icon(Icons.error),
                         ),
                         title: Text('${listhouse[index]['type_name']}'),
                         subtitle: Column(
@@ -190,6 +189,66 @@ class ListhouseUserState extends State<ListhouseUser> {
                             },
                           ),
                         ]),
+                      ),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: Column(
+                              children: <Widget>[
+                                IconButton(
+                                  // label: Text('Like(${nbcount})'),
+                                  onPressed: () {},
+                                  icon: Icon(
+                                    Icons.thumb_up,
+                                    color: (listhouse[index]['likeProperties']
+                                                .length !=
+                                            0)
+                                        ? Colors.red
+                                        : Colors.grey,
+                                  ),
+                                ),
+                                Text(
+                                    'Like(${listhouse[index]['likeProperties'].length})',
+                                    style: TextStyle(fontSize: 10.0))
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              children: <Widget>[
+                                IconButton(
+                                  //label: Text('Comment'),
+                                  onPressed: () {},
+                                  icon: Icon(
+                                    Icons.comment,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                Text(
+                                  'Comment',
+                                  style: TextStyle(fontSize: 10.0),
+                                )
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              children: <Widget>[
+                                IconButton(
+                                  onPressed: () {},
+                                  icon: Icon(
+                                    Icons.calendar_today,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                Text(
+                                  'ນັດເບີ່ງ​ເຮືອນ',
+                                  style: TextStyle(fontSize: 10.0),
+                                )
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                       Divider()
                     ],

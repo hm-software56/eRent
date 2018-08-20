@@ -1,11 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
+import 'package:erent/comment.dart';
 import 'package:erent/url_api.dart';
+import 'package:erent/view_map.dart';
 import 'package:erent/viewphoto.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:carousel/carousel.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ViewHouse extends StatefulWidget {
   var houseID;
@@ -25,29 +30,55 @@ class ViewHouseState extends State<ViewHouse> {
   var detailhouse;
   var listphotos;
   bool isLoading = true;
+  var UserID;
+  var getFirstname;
   List ListPhoroCarousel = List();
-
+  double long;
+  double lat;
   Future<Null> getDetailhouse() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var userid = await prefs.get('token');
+    var firstname = await prefs.get('first_name');
+    setState(() {
+      UserID = userid;
+      getFirstname=firstname;
+    });
+
     final response = await http
         .get('${UrlApi().url}/index.php/api/detailhouse?id=${houseID}');
 
     final responsephoto =
         await http.get('${UrlApi().url}/index.php/api/photos?did=${detailID}');
-    if (response.statusCode == 200  && responsephoto.statusCode == 200 ) {
+    if (response.statusCode == 200 && responsephoto.statusCode == 200) {
       var jsonResponse = json.decode(response.body);
       var jsonResponsephoto = json.decode(responsephoto.body);
 
-      // print(jsonResponse);
-      // print(jsonResponsephoto);
+      Dio dio = new Dio();
+      final responseliked = await dio.get(
+          "${UrlApi().url}/index.php/api/likecount?id=${houseID}&userid=${UserID}");
+      if (responseliked.statusCode == 200) {
+        var nb = responseliked.data['nbcount'];
+        setState(() {
+          likeunlike = responseliked.data['like'];
+          nbcount = nb;
+        });
+      }
 
       setState(() {
         isLoading = false;
         detailhouse = jsonResponse['rows'];
+        if (detailhouse[0]['longtitude'] == null ||
+            detailhouse[0]['lattitude'] == null) {
+          long = 18.625546;
+          lat = 102.960681;
+        } else {
+          long = double.parse(detailhouse[0]['longtitude']);
+          lat = double.parse(detailhouse[0]['lattitude']);
+        }
         listphotos = jsonResponsephoto['photos'];
         // List ListPhoroCarousel = List();
         for (var item in listphotos) {
-          ListPhoroCarousel
-              .add(NetworkImage('${UrlApi().url}/images/small/${item['name']}'));
+          ListPhoroCarousel.add('${UrlApi().url}/images/small/${item['name']}');
         }
       });
     } else {
@@ -90,6 +121,36 @@ class ViewHouseState extends State<ViewHouse> {
     }
   }
 
+  /* ================= favorite ======================*/
+  int likeunlike = 1;
+  var nbcount;
+  Future Favorite(var houseID, var UserID) async {
+    Dio dio = new Dio();
+    Response response = await dio.get(
+        "${UrlApi().url}/index.php/api/favorite?id=${houseID}&userid=${UserID}&like=${likeunlike}");
+    if (response.statusCode == 200) {
+      var nb = response.data['nbcount'];
+      print(response.data['nbcount']);
+      setState(() {
+        likeunlike = response.data['like'];
+        nbcount = nb;
+      });
+    }
+  }
+
+/*================ Add Comment ===========*/
+  var commentInput;
+  bool isComment = false;
+  List listComment = List();
+  addComment(var comment) {
+    print(comment);
+    setState(() {
+      listComment.add(comment);
+      isComment = false;
+    });
+    Navigator.of(context).pop();
+  }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -120,16 +181,21 @@ class ViewHouseState extends State<ViewHouse> {
                               displayDuration: Duration(seconds: 10),
                               children: ListPhoroCarousel
                                   .map((netImage) => GestureDetector(
-                                      onTap: () {
-                                        Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                fullscreenDialog: true,
-                                                builder: (context) =>
-                                                    ViewPhoto(netImage)));
-                                      },
-                                      child: Image(
-                                          image: netImage, fit: BoxFit.fill)))
+                                        onTap: () {
+                                          Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  fullscreenDialog: true,
+                                                  builder: (context) =>
+                                                      ViewPhoto(netImage)));
+                                        },
+                                        child: CachedNetworkImage(
+                                          imageUrl: netImage,
+                                          placeholder:
+                                              new CircularProgressIndicator(),
+                                          errorWidget: new Icon(Icons.error),
+                                        ),
+                                      ))
                                   .toList(),
                             ),
                           ),
@@ -140,8 +206,8 @@ class ViewHouseState extends State<ViewHouse> {
                                 context,
                                 MaterialPageRoute(
                                     fullscreenDialog: true,
-                                    builder: (context) => ViewPhoto(NetworkImage(
-                                        '${UrlApi().url}/images/${detailhouse[0]['photo_name']}'))));
+                                    builder: (context) => ViewPhoto(
+                                        '${UrlApi().url}/images/${detailhouse[0]['photo_name']}')));
                           },
                           child: Image(
                             fit: BoxFit.cover,
@@ -152,6 +218,23 @@ class ViewHouseState extends State<ViewHouse> {
                             ),
                           ),
                         ),
+                  FlatButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ViewMap(long, lat)));
+                    },
+                    label: Text(
+                      'view Map',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    icon: Icon(
+                      Icons.location_on,
+                      color: Colors.white,
+                    ),
+                    color: Colors.red,
+                  ),
                   Divider(),
                   Text('${detailhouse[0]['details']}'),
                   (detailhouse[0]['dstatus'] == '1')
@@ -163,7 +246,114 @@ class ViewHouseState extends State<ViewHouse> {
                           '​ບໍ່ຫວ່າງ',
                           style: TextStyle(color: Colors.red),
                         ),
-                  Text('ລາ​ຄາ:${detailhouse[0]['fee']}/${(detailhouse[0]['per'] == "m") ? "ເດືອນ" : "ປີ"}')
+                  Text(
+                      'ລາ​ຄາ:${detailhouse[0]['fee']}/${(detailhouse[0]['per'] == "m") ? "ເດືອນ" : "ປີ"}'),
+                  Divider(),
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Column(
+                          children: <Widget>[
+                            IconButton(
+                              // label: Text('Like(${nbcount})'),
+                              onPressed: () {
+                                Favorite(houseID, UserID);
+                              },
+                              icon: Icon(
+                                Icons.thumb_up,
+                                color: (likeunlike == 1)
+                                    ? Colors.grey
+                                    : Colors.red,
+                              ),
+                            ),
+                            Text(
+                              'Like(${nbcount})',
+                              style: TextStyle(fontSize: 10.0),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: Column(
+                          children: <Widget>[
+                            IconButton(
+                              //label: Text('Comment'),
+                              onPressed: () => showDialog(
+                                  context: context,
+                                  child: new AlertDialog(
+                                    content: new TextField(
+                                      maxLines: 2,
+                                      keyboardType: TextInputType.multiline,
+                                      decoration: new InputDecoration(
+                                          labelText: "ປ້ອນ​ຄຳ​ເຫັນ"),
+                                      onChanged: (String text) {
+                                        commentInput = text;
+                                        setState(() {
+                                          isComment = true;
+                                        });
+                                      },
+                                    ),
+                                    actions: <Widget>[
+                                      new FlatButton(
+                                          child: (isComment)
+                                              ? Icon(Icons.send,
+                                                  color: Colors.blue)
+                                              : Icon(Icons.send,
+                                                  color: Colors.grey),
+                                          onPressed: () {
+                                            (isComment)
+                                                ? addComment(commentInput)
+                                                : '';
+                                          })
+                                    ],
+                                  )),
+                              icon: Icon(
+                                Icons.comment,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            Text(
+                              'Comment',
+                              style: TextStyle(fontSize: 10.0),
+                            )
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: Column(
+                          children: <Widget>[
+                            IconButton(
+                              onPressed: () {},
+                              icon: Icon(
+                                Icons.calendar_today,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            Text(
+                              'ນັດເບີ່ງ​ເຮືອນ',
+                              style: TextStyle(fontSize: 10.0),
+                            )
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  new Container(
+                    width: 290.0,
+                    height: 320.0,
+                    child: ListView.builder(
+                      itemCount: listComment.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          leading: CircleAvatar(
+                              backgroundImage:
+                                  AssetImage('assets/img/user.jpg')),
+                          title: Text('${getFirstname}'),
+                          subtitle: Text('${listComment[index]}'),
+                        );
+                      },
+                    ),
+                  )
                 ],
               ),
             ),
