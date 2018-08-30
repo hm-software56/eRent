@@ -7,6 +7,9 @@
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
 
+    <!-- Daxiong Add use googl map-->
+     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    
     <!-- io.flutter.app.FlutterApplication is an android.app.Application that
          calls FlutterMain.startInitialization(this); in its onCreate method.
          In most cases you can leave this as-is, but you if you want to provide
@@ -16,6 +19,11 @@
         android:name="io.flutter.app.FlutterApplication"
         android:label="erent"
         android:icon="@mipmap/ic_launcher">
+        
+          <!--- Daxiong Add google map 
+        <meta-data android:name="com.google.android.maps.v2.API_KEY" android:value="AIzaSyCeiF-vbGdEdtOXAgqFzx26913Y3V4OrFI"/>
+        <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version"/>
+        -->
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
@@ -36,5 +44,6 @@
             </intent-filter>
         </activity>
         <meta-data android:name="com.onesignal.NotificationOpened.DEFAULT" android:value="DISABLE" />  
+      
     </application>
 </manifest>

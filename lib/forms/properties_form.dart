@@ -320,7 +320,7 @@ class PropertiesFormState extends State<PropertiesForm> {
                               _data.per = newValue;
                             });
                           },
-                          items: ['​ເດືອນ', 'ປີ'].map((value) {
+                          items: ['ເດືອນ', 'ປີ'].map((value) {
                             return new DropdownMenuItem<String>(
                               value: value,
                               child: new Text(value),

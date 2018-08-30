@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
+import 'package:erent/comment.dart';
 import 'package:erent/forms/properties_form.dart';
 import 'package:erent/forms/properties_formedit.dart';
 import 'package:erent/forms/viewproperties.dart';
@@ -217,15 +218,22 @@ class ListhouseUserState extends State<ListhouseUser> {
                             child: Column(
                               children: <Widget>[
                                 IconButton(
-                                  //label: Text('Comment'),
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            fullscreenDialog: true,
+                                            builder: (context) => Comment(
+                                                listhouse[index]['id']
+                                                )));
+                                  },
                                   icon: Icon(
                                     Icons.comment,
                                     color: Colors.grey,
                                   ),
                                 ),
                                 Text(
-                                  'Comment',
+                                  'Comment(${listhouse[index]['comments'].length})',
                                   style: TextStyle(fontSize: 10.0),
                                 )
                               ],

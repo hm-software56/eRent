@@ -35,13 +35,14 @@ class ViewHouseState extends State<ViewHouse> {
   List ListPhoroCarousel = List();
   double long;
   double lat;
+  int Countcomment;
   Future<Null> getDetailhouse() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var userid = await prefs.get('token');
     var firstname = await prefs.get('first_name');
     setState(() {
       UserID = userid;
-      getFirstname=firstname;
+      getFirstname = firstname;
     });
 
     final response = await http
@@ -56,11 +57,15 @@ class ViewHouseState extends State<ViewHouse> {
       Dio dio = new Dio();
       final responseliked = await dio.get(
           "${UrlApi().url}/index.php/api/likecount?id=${houseID}&userid=${UserID}");
+      final responseCountcomment = await dio.get(
+          "${UrlApi().url}/index.php/api/countcomments?houseID=${houseID}");
+
       if (responseliked.statusCode == 200) {
         var nb = responseliked.data['nbcount'];
         setState(() {
           likeunlike = responseliked.data['like'];
           nbcount = nb;
+          Countcomment=int.parse(responseCountcomment.data);
         });
       }
 
@@ -142,13 +147,27 @@ class ViewHouseState extends State<ViewHouse> {
   var commentInput;
   bool isComment = false;
   List listComment = List();
-  addComment(var comment) {
-    print(comment);
-    setState(() {
-      listComment.add(comment);
-      isComment = false;
-    });
+  addComment(var comment) async {
+    //print(comment);
     Navigator.of(context).pop();
+
+    Dio dio = new Dio();
+    FormData formData = new FormData.from({
+      'smg': comment,
+      'userID': UserID,
+      'houseID': houseID,
+    });
+    var response = await dio.post("${UrlApi().url}/index.php/api/addcomments",
+        data: formData);
+    if (response.statusCode == 200) {
+      final responseList = await dio
+          .get('${UrlApi().url}/index.php/api/listcomments?houseID=${houseID}');
+      setState(() {
+        listComment = responseList.data;
+        Countcomment=1+Countcomment;
+      });
+      // print(response);
+    }
   }
 
   @override
@@ -277,43 +296,44 @@ class ViewHouseState extends State<ViewHouse> {
                         child: Column(
                           children: <Widget>[
                             IconButton(
-                              //label: Text('Comment'),
-                              onPressed: () => showDialog(
-                                  context: context,
-                                  child: new AlertDialog(
-                                    content: new TextField(
-                                      maxLines: 2,
-                                      keyboardType: TextInputType.multiline,
-                                      decoration: new InputDecoration(
-                                          labelText: "ປ້ອນ​ຄຳ​ເຫັນ"),
-                                      onChanged: (String text) {
-                                        commentInput = text;
-                                        setState(() {
-                                          isComment = true;
-                                        });
-                                      },
-                                    ),
-                                    actions: <Widget>[
-                                      new FlatButton(
-                                          child: (isComment)
-                                              ? Icon(Icons.send,
-                                                  color: Colors.blue)
-                                              : Icon(Icons.send,
-                                                  color: Colors.grey),
-                                          onPressed: () {
-                                            (isComment)
-                                                ? addComment(commentInput)
-                                                : '';
-                                          })
-                                    ],
-                                  )),
+                              onPressed: () {
+                                showDialog(
+                                    context: context,
+                                    child: new AlertDialog(
+                                      content: new TextField(
+                                        maxLines: 2,
+                                        keyboardType: TextInputType.multiline,
+                                        decoration: new InputDecoration(
+                                            labelText: "ປ້ອນ​ຄຳ​ເຫັນ"),
+                                        onChanged: (String text) {
+                                          commentInput = text;
+                                          setState(() {
+                                            isComment = true;
+                                          });
+                                        },
+                                      ),
+                                      actions: <Widget>[
+                                        new FlatButton(
+                                            child: (isComment)
+                                                ? Icon(Icons.send,
+                                                    color: Colors.blue)
+                                                : Icon(Icons.send,
+                                                    color: Colors.grey),
+                                            onPressed: () {
+                                              (isComment)
+                                                  ? addComment(commentInput)
+                                                  : '';
+                                            })
+                                      ],
+                                    ));
+                              },
                               icon: Icon(
                                 Icons.comment,
                                 color: Colors.grey,
                               ),
                             ),
                             Text(
-                              'Comment',
+                              'Comment(${Countcomment})',
                               style: TextStyle(fontSize: 10.0),
                             )
                           ],
@@ -338,22 +358,24 @@ class ViewHouseState extends State<ViewHouse> {
                       ),
                     ],
                   ),
-                  new Container(
-                    width: 290.0,
-                    height: 320.0,
-                    child: ListView.builder(
-                      itemCount: listComment.length,
-                      itemBuilder: (context, index) {
-                        return ListTile(
-                          leading: CircleAvatar(
-                              backgroundImage:
-                                  AssetImage('assets/img/user.jpg')),
-                          title: Text('${getFirstname}'),
-                          subtitle: Text('${listComment[index]}'),
-                        );
-                      },
-                    ),
-                  )
+                  (listComment.length != 0)
+                      ? Container(
+                          width: 290.0,
+                          height: 320.0,
+                          child: ListView.builder(
+                            itemCount: listComment.length,
+                            itemBuilder: (context, index) {
+                              return ListTile(
+                                leading: CircleAvatar(
+                                    backgroundImage:
+                                        AssetImage('assets/img/user.jpg')),
+                                title: Text('${listComment[index]['user']['register']['first_name']}'),
+                                subtitle: Text('${listComment[index]['smg']}'),
+                              );
+                            },
+                          ),
+                        )
+                      : Text('')
                 ],
               ),
             ),

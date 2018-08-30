@@ -1,10 +1,12 @@
 import 'package:erent/forms/listhouse_user.dart';
-import 'package:erent/test.dart';
 import 'package:flutter/material.dart';
 import 'package:erent/login.dart';
 import 'package:erent/home.dart';
 import 'package:erent/register.dart';
-void main() => runApp(new MyApp());
+//import 'package:map_view/map_view.dart';
+void main() {
+  runApp(new MyApp());
+}
 
 class MyApp extends StatelessWidget {
 
