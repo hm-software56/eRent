@@ -310,7 +310,9 @@ class HomeState extends State<Home> {
               style: TextStyle(fontSize: 12.0),
             ),
             trailing: Icon(Icons.keyboard_arrow_right),
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context).pushNamed('/profile');
+            },
           ),
           ListTile(
             leading: Icon(

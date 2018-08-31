@@ -1,4 +1,5 @@
 import 'package:erent/forms/listhouse_user.dart';
+import 'package:erent/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:erent/login.dart';
 import 'package:erent/home.dart';
@@ -15,6 +16,7 @@ class MyApp extends StatelessWidget {
     '/home': (context) => Home(),
     '/register':(context) =>Register(),
     '/listhouseuser':(context) =>ListhouseUser(),
+    '/profile':(context)=>Profile(),
     
   };
   // This widget is the root of your application.
