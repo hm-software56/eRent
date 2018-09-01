@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:erent/login.dart';
 import 'package:erent/home.dart';
 import 'package:erent/register.dart';
+import 'package:erent/test.dart';
 //import 'package:map_view/map_view.dart';
 void main() {
   runApp(new MyApp());

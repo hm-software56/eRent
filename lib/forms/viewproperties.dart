@@ -2,9 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:carousel/carousel.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:erent/forms/package.dart';
-import 'package:erent/forms/properties_form.dart';
 import 'package:erent/forms/properties_formedit.dart';
 import 'package:erent/url_api.dart';
 import 'package:erent/viewphoto.dart';
@@ -51,7 +50,7 @@ class ViewPropertiesState extends State<ViewProperties> {
         listphotos = jsonResponsephoto['photos'];
         // List ListPhoroCarousel = List();
         for (var item in listphotos) {
-           ListPhoroCarousel.add('${UrlApi().url}/images/small/${item['name']}'); 
+          ListPhoroCarousel.add('${UrlApi().url}/images/small/${item['name']}');
         }
       });
     } else {
@@ -137,25 +136,27 @@ class ViewPropertiesState extends State<ViewProperties> {
                             ? SizedBox(
                                 height: 240.0,
                                 child: Container(
-                                  child: Carousel(
-                                    displayDuration: Duration(seconds: 10),
-                                    children: ListPhoroCarousel
-                                        .map((netImage) => GestureDetector(
-                                            onTap: () {
-                                              Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                      fullscreenDialog: true,
-                                                      builder: (context) =>
-                                                          ViewPhoto(netImage)));
-                                            },
-                                            child: CachedNetworkImage(
-                                          imageUrl: netImage,
-                                          placeholder:
-                                              new CircularProgressIndicator(),
-                                          errorWidget: new Icon(Icons.error),
-                                        )))
-                                        .toList(),
+                                  child: CarouselSlider(
+                                    // displayDuration: Duration(seconds: 10),
+                                    items: ListPhoroCarousel.map((netImage) =>
+                                        GestureDetector(
+                                          onTap: () {
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    fullscreenDialog: true,
+                                                    builder: (context) =>
+                                                        ViewPhoto(netImage)));
+                                          },
+                                          child: CachedNetworkImage(
+                                            fit: BoxFit.contain,
+                                            imageUrl: netImage,
+                                            placeholder:
+                                                new CircularProgressIndicator(),
+                                            errorWidget:
+                                                new Icon(Icons.error),
+                                          ),
+                                        )).toList(),
                                   ),
                                 ),
                               )
@@ -170,11 +171,11 @@ class ViewPropertiesState extends State<ViewProperties> {
                                                   '${UrlApi().url}/images/${detailhouse[0]['photo_name']}'))));
                                 },
                                 child: CachedNetworkImage(
-                                          imageUrl: '${UrlApi().url}/images/${detailhouse[0]['photo_name']}',
-                                          placeholder:
-                                              new CircularProgressIndicator(),
-                                          errorWidget: new Icon(Icons.error),
-                                        ),
+                                  imageUrl:
+                                      '${UrlApi().url}/images/${detailhouse[0]['photo_name']}',
+                                  placeholder: new CircularProgressIndicator(),
+                                  errorWidget: new Icon(Icons.error),
+                                ),
                               ),
                         Divider(),
                         Text('${detailhouse[0]['details']}'),
@@ -226,7 +227,8 @@ class ViewPropertiesState extends State<ViewProperties> {
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                      fullscreenDialog: true, builder: (context) => Package(houseID)));
+                      fullscreenDialog: true,
+                      builder: (context) => Package(houseID)));
             },
             tooltip: 'Toggle',
             child: Icon(Icons.attach_money)));

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:zoomable_image/zoomable_image.dart';
 import 'package:photo_view/photo_view.dart';
 
 class ViewPhoto extends StatefulWidget {

@@ -8,9 +8,9 @@ import 'package:erent/view_map.dart';
 import 'package:erent/viewphoto.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:carousel/carousel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
 class ViewHouse extends StatefulWidget {
   var houseID;
@@ -65,7 +65,7 @@ class ViewHouseState extends State<ViewHouse> {
         setState(() {
           likeunlike = responseliked.data['like'];
           nbcount = nb;
-          Countcomment=int.parse(responseCountcomment.data);
+          Countcomment = int.parse(responseCountcomment.data);
         });
       }
 
@@ -164,7 +164,7 @@ class ViewHouseState extends State<ViewHouse> {
           .get('${UrlApi().url}/index.php/api/listcomments?houseID=${houseID}');
       setState(() {
         listComment = responseList.data;
-        Countcomment=1+Countcomment;
+        Countcomment = 1 + Countcomment;
       });
       // print(response);
     }
@@ -196,10 +196,9 @@ class ViewHouseState extends State<ViewHouse> {
                       ? SizedBox(
                           height: 240.0,
                           child: Container(
-                            child: Carousel(
-                              displayDuration: Duration(seconds: 10),
-                              children: ListPhoroCarousel
-                                  .map((netImage) => GestureDetector(
+                            child: CarouselSlider(
+                              items: ListPhoroCarousel.map(
+                                  (netImage) => GestureDetector(
                                         onTap: () {
                                           Navigator.push(
                                               context,
@@ -209,13 +208,13 @@ class ViewHouseState extends State<ViewHouse> {
                                                       ViewPhoto(netImage)));
                                         },
                                         child: CachedNetworkImage(
+                                          fit: BoxFit.contain,
                                           imageUrl: netImage,
                                           placeholder:
                                               new CircularProgressIndicator(),
                                           errorWidget: new Icon(Icons.error),
                                         ),
-                                      ))
-                                  .toList(),
+                                      )).toList(),
                             ),
                           ),
                         )
@@ -369,7 +368,8 @@ class ViewHouseState extends State<ViewHouse> {
                                 leading: CircleAvatar(
                                     backgroundImage:
                                         AssetImage('assets/img/user.jpg')),
-                                title: Text('${listComment[index]['user']['register']['first_name']}'),
+                                title: Text(
+                                    '${listComment[index]['user']['register']['first_name']}'),
                                 subtitle: Text('${listComment[index]['smg']}'),
                               );
                             },
