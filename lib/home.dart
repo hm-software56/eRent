@@ -19,6 +19,8 @@ class HomeState extends State<Home> {
   var gettoken;
   var getusername;
   var getfirstname;
+  var photo_profile;
+  var photo_bg;
 
 /* ====================== Onsigal Push notifycation ============================= */
   _initOneSignal() async {
@@ -49,13 +51,17 @@ class HomeState extends State<Home> {
   }
 
   /*======================Get User Login ========================*/
+
   Future<Null> getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var token = await prefs.get('token');
     var datauser = await prefs.get('username');
     var firstname = await prefs.get('first_name');
-
+    var photoProfile = await prefs.get('photo_profile');
+    var photoBg = await prefs.get('photo_bg');
     setState(() {
+      photo_profile = photoProfile;
+      photo_bg = photoBg;
       gettoken = token;
       getusername = datauser;
       getfirstname = firstname;
@@ -262,10 +268,18 @@ class HomeState extends State<Home> {
           UserAccountsDrawerHeader(
             decoration: BoxDecoration(
               image: DecorationImage(
-                  image: AssetImage('assets/img/bg.jpg'), fit: BoxFit.fill),
+                  image: photo_bg == null
+                      ? AssetImage('assets/img/bg.jpg')
+                      : NetworkImage('${UrlApi().url}/images/small/'
+                          '${photo_bg}'),
+                  fit: BoxFit.fill),
             ),
             currentAccountPicture: CircleAvatar(
-                backgroundImage: AssetImage('assets/img/user.jpg')),
+              backgroundImage: photo_profile == null
+                  ? AssetImage('assets/img/user.jpg')
+                  : NetworkImage('${UrlApi().url}/images/small/'
+                      '${photo_profile}'),
+            ),
             accountName: Text(
               '$getfirstname',
               style: TextStyle(

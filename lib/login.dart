@@ -53,6 +53,8 @@ class LoginState extends State<Login> {
         prefs.setInt('token', jsonResponse['id']);
         prefs.setString('username', jsonResponse['username']);
         prefs.setString('first_name', jsonResponse['first_name']);
+        prefs.setString('photo_profile', jsonResponse['photo_profile']);
+        prefs.setString('photo_bg', jsonResponse['photo_bg']);
 
         Navigator.pushReplacement(
             context, MaterialPageRoute(builder: (context) => Home()));
