@@ -105,7 +105,7 @@ class CommentState extends State<Comment> {
                   ),
                   (idcomment == listComment[index]['id'])
                       ? idcomment
-                      : Text('${idcomment}',
+                      : Text('${idcomment}', 
                           style: TextStyle(
                             color: Colors.blue,
                           )),

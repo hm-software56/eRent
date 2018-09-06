@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:erent/login.dart';
+import 'package:erent/models/model_register.dart';
 import 'package:erent/url_api.dart';
 import 'package:erent/viewhouse.dart';
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -260,26 +263,229 @@ class HomeState extends State<Home> {
       ],
     );
 
+    /* ------------------------ Upload Ingage profile -------------------------*/
+  File _image;
+  bool isloadimg = false;
+  Future getImageProfile(var type) async {
+    var imageFile = (type == 'camera')
+        ? await ImagePicker.pickImage(source: ImageSource.camera)
+        : await ImagePicker.pickImage(source: ImageSource.gallery);
+    if (imageFile != null) {
+      setState(() {
+        _image = imageFile;
+        isloadimg = true;
+      });
+      /*============ Drop Images =================*/
+      File croppedFile = await ImageCropper.cropImage(
+          sourcePath: imageFile.path,
+          ratioX: 1.0,
+          ratioY: 1.0,
+          toolbarTitle: 'ຕັດ​ຮູບ​ພາບ',
+          toolbarColor: Colors.red);
+      if (croppedFile != null) {
+        imageFile = croppedFile;
+        /*============ Send Images to API Save =================*/
+        Dio dio = new Dio();
+        FormData formData = new FormData.from({
+          "name": "profile_img",
+          'edit':true,
+          'userid':gettoken,
+          "upfile": new UploadFileInfo(imageFile, "upload1.jpg")
+        });
+        var response = await dio
+            .post("${UrlApi().url}/index.php/api/uplaodfile", data: formData);
+        if (response.statusCode == 200) {
+          setState(() {
+            isloadimg = false;
+            photo_profile = response.data;
+          });
+        } else {
+          print('Error upload image');
+        }
+      } else {
+        setState(() {
+          if (photo_profile.photo == null) {
+            _image = null;
+          }
+          isloadimg = false;
+        });
+      }
+    }
+  }
+
+/*====================== Uplaod image profile Bg ========================*/
+  File _imageBg;
+  bool isloadimgBg = false;
+  Future getImageBgProfile(var type) async {
+    var imageBgFile = (type == 'camera')
+        ? await ImagePicker.pickImage(source: ImageSource.camera)
+        : await ImagePicker.pickImage(source: ImageSource.gallery);
+    if (imageBgFile != null) {
+      setState(() {
+        _imageBg = imageBgFile;
+        isloadimgBg = true;
+      });
+      /*============ Drop Images =================*/
+      File croppedFile = await ImageCropper.cropImage(
+          sourcePath: imageBgFile.path,
+          ratioX: 1.8,
+          ratioY: 1.0,
+          toolbarTitle: 'ຕັດ​ຮູບ​ພາບ',
+          toolbarColor: Colors.red);
+      if (croppedFile != null) {
+        imageBgFile = croppedFile; 
+        /*============ Send Images to API Save =================*/
+        Dio dio = new Dio();
+        FormData formData = new FormData.from({
+          "name": "profileBg_img",
+          'edit':true,
+          'userid':gettoken,
+          "upfile": new UploadFileInfo(imageBgFile, "upload1.jpg")
+        });
+        var response = await dio
+            .post("${UrlApi().url}/index.php/api/uplaodfile", data: formData);
+        if (response.statusCode == 200) {
+          setState(() {
+            isloadimgBg = false;
+            photo_bg= response.data;
+          });
+        } else {
+          print('Error upload image');
+        }
+      } else {
+        setState(() {
+          if (photo_bg == null) {
+            _imageBg = null;
+          }
+          isloadimgBg = false;
+        });
+      }
+    }
+  }
+
 //================== menu left ========================
     Widget drawer = Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[
           UserAccountsDrawerHeader(
+            onDetailsPressed: (){
+                  showDialog(
+                      context: context,
+                      child: AlertDialog( 
+                          content: Container(
+                        height: 80.0,
+                        child: Column(
+                          children: <Widget>[
+                            Text(
+                              'ປ່ຽນ​ຮູບ​ໂປ​ຣ​ໄຟພື້ນຫຼັງ',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            Row(
+                              children: <Widget>[
+                                OutlineButton.icon(
+                                  label: Text('GALLERY',
+                                      style: TextStyle(
+                                          fontSize: 10.0, color: Colors.black)),
+                                  icon: Icon(
+                                    Icons.image,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () {
+                                    getImageBgProfile('gallery');
+
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.only(left: 10.0),
+                                  child: OutlineButton.icon(
+                                    label: Text('CAMERA',
+                                        style: TextStyle(fontSize: 10.0)),
+                                    icon: Icon(
+                                      Icons.camera,
+                                      color: Colors.red,
+                                    ),
+                                    onPressed: () {
+                                      getImageBgProfile('camera');
+
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                )
+                              ],
+                            ),
+                          ],
+                        ),
+                      )));
+                },
             decoration: BoxDecoration(
               image: DecorationImage(
+                
                   image: photo_bg == null
                       ? AssetImage('assets/img/bg.jpg')
                       : NetworkImage('${UrlApi().url}/images/small/'
                           '${photo_bg}'),
                   fit: BoxFit.fill),
             ),
-            currentAccountPicture: CircleAvatar(
-              backgroundImage: photo_profile == null
-                  ? AssetImage('assets/img/user.jpg')
-                  : NetworkImage('${UrlApi().url}/images/small/'
-                      '${photo_profile}'),
-            ),
+            
+            currentAccountPicture: GestureDetector(
+                onTap: () {
+                  showDialog(
+                      context: context,
+                      child: AlertDialog( 
+                          content: Container(
+                        height: 80.0,
+                        child: Column(
+                          children: <Widget>[
+                            Text(
+                              'ປ່ຽນ​ຮູບ​ໂປ​ຣ​ໄຟ',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            Row(
+                              children: <Widget>[
+                                OutlineButton.icon(
+                                  label: Text('GALLERY',
+                                      style: TextStyle(
+                                          fontSize: 10.0, color: Colors.black)),
+                                  icon: Icon(
+                                    Icons.image,
+                                    color: Colors.blue,
+                                  ),
+                                  onPressed: () {
+                                    getImageProfile('gallery');
+
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.only(left: 10.0),
+                                  child: OutlineButton.icon(
+                                    label: Text('CAMERA',
+                                        style: TextStyle(fontSize: 10.0)),
+                                    icon: Icon(
+                                      Icons.camera,
+                                      color: Colors.blue,
+                                    ),
+                                    onPressed: () {
+                                      getImageProfile('camera');
+
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                )
+                              ],
+                            ),
+                          ],
+                        ),
+                      )));
+                },
+                child: CircleAvatar(
+                  backgroundImage: photo_profile == null
+                      ? AssetImage('assets/img/user.jpg')
+                      : NetworkImage('${UrlApi().url}/images/small/'
+                          '${photo_profile}'),
+                )),
             accountName: Text(
               '$getfirstname',
               style: TextStyle(
