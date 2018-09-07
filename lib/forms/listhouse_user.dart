@@ -165,7 +165,7 @@ class ListhouseUserState extends State<ListhouseUser> {
                                       '​ບໍ່ຫວ່າງ',
                                       style: TextStyle(color: Colors.red),
                                     ),
-                              Text('ລາ​ຄາ:${listhouse[index]['fee']}/$per'),
+                              Text('ລາ​ຄາ:${listhouse[index]['fee']} ${listhouse[index]['currency_name']}/$per'),
                             ]),
                         trailing: Column(children: <Widget>[
                           IconButton(
