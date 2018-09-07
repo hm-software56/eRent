@@ -24,6 +24,7 @@ dependencies:
   url_launcher: ^3.0.3
   carousel_slider: ^0.0.7
   image_cropper: ^0.0.6
+  money: ^0.2.1
   
   
 

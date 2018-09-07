@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:erent/login.dart';
-import 'package:erent/models/model_register.dart';
 import 'package:erent/url_api.dart';
 import 'package:erent/viewhouse.dart';
 import 'package:flutter/material.dart';
@@ -615,17 +614,7 @@ class HomeState extends State<Home> {
                           placeholder: new CircularProgressIndicator(),
                           errorWidget: new Icon(Icons.error),
                         ),
-                        /* Image(
-                          image: (listhouses[index]['photo_name'] == null)
-                              ? AssetImage('assets/img/logo.jpg')
-                              : NetworkImage(
-                                  '${UrlApi().url}/images/small/'
-                                      '${listhouses[index]['photo_name']}',
-                                ),
-                          width: 100.0,
-                          height: 100.0,
-                          fit: BoxFit.cover,
-                        ),*/
+                        
                         title: Text('${listhouses[index]['type_name']}'),
                         subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -634,7 +623,7 @@ class HomeState extends State<Home> {
                                 '${listhouses[index]['details']}',
                                 overflow: TextOverflow.ellipsis,
                                 softWrap: true,
-                                maxLines: 2,
+                                maxLines: 2, 
                               ),
                               (listhouses[index]['dstatus'] == '1')
                                   ? Text(
@@ -645,7 +634,7 @@ class HomeState extends State<Home> {
                                       '​ບໍ່ຫວ່າງ',
                                       style: TextStyle(color: Colors.red),
                                     ),
-                              Text('ລາ​ຄາ:${listhouses[index]['fee']}/$per')
+                              Text('ລາ​ຄາ:${listhouses[index]['fee']} ${listhouses[index]['currency_name']}/$per')
                             ]),
                         trailing: Icon(Icons.keyboard_arrow_right),
                       ),
