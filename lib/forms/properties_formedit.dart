@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:io';
-
 import 'package:erent/forms/viewproperties.dart';
 import 'package:erent/url_api.dart';
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,22 +26,24 @@ class PropertiesFormeditState extends State<PropertiesFormedit> {
   bool isloadimg = false;
   bool isloadsave = false;
   List listpropertytype = List();
+  List listcurrency = List();
   String validatetype = '';
   String validateper = '';
   String validateimg = '';
+  String validatecurrency = ''; 
   File _image;
 
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
-  _PropertiesForm _data = _PropertiesForm();
+  _PropertiesForm _data = _PropertiesForm(); 
 
-  Future<Null> getData() async {
-    Dio dio = Dio();
+  Future<Null> getData() async {  
+    Dio dio = Dio();  
     final responsepro =
         await dio.get('${UrlApi().url}/index.php/api/detailhouse?id=${proID}');
     final responsephoto =
         await dio.get('${UrlApi().url}/index.php/api/photos?did=${detailID}');
     if (responsepro.statusCode == 200 && responsephoto.statusCode == 200) {
-      //print(responsephoto.data);
+      //sprint(responsephoto.data);
       // responsephoto.data;
       setState(() {
         _data.detailes = responsepro.data['rows'][0]['details'];
@@ -49,6 +51,7 @@ class PropertiesFormeditState extends State<PropertiesFormedit> {
         _data.fee = responsepro.data['rows'][0]['fee'];
         _data.long = responsepro.data['rows'][0]['longtitude'];
         _data.lat = responsepro.data['rows'][0]['lattitude'];
+        _data.currency = responsepro.data['rows'][0][''];
 
         if (responsepro.data['rows'][0]['fee'] == 'm') {
           _data.per = '​ເດືອນ';
@@ -57,7 +60,7 @@ class PropertiesFormeditState extends State<PropertiesFormedit> {
         }
         for (var item in responsephoto.data['photos']) {
           _data.imgname.add(item['name']);
-          _image=new File('assets/img/logo.jpg');
+          _image = new File('assets/img/logo.jpg');
         }
       });
     }
@@ -66,15 +69,29 @@ class PropertiesFormeditState extends State<PropertiesFormedit> {
     final response =
         await dio.get('${UrlApi().url}/index.php/api/listpropertiestype');
 
-    if (response.statusCode == 200) {
+    final responseCurrency =
+        await dio.get('${UrlApi().url}/index.php/api/listcurrency');
+
+    if (response.statusCode == 200 && responseCurrency.statusCode == 200) {
       var jsonResponse = response.data;
+      var jsoncurrency = responseCurrency.data;
+
       // print(jsonResponse);
-      //print(jsonResponsepackage);
+      //print(responseCurrency);
+
+      List listtype = List();
+      for (var item in jsonResponse['rows']) {
+        listtype.add('${item['name']}');
+      }
+
+      List currency = List();
+      for (var item in jsoncurrency['rows']) {
+        currency.add('${item['name']}');
+      }
       isLoading = false;
       setState(() {
-        for (var item in jsonResponse['rows']) {
-          listpropertytype.add('${item['name']}');
-        }
+        listpropertytype = listtype;
+        listcurrency = currency;
       });
     } else {
       setState(() {
@@ -117,31 +134,47 @@ class PropertiesFormeditState extends State<PropertiesFormedit> {
   }
 
 /* ------------------------ Upload Ingage -------------------------*/
-  //List imgList = List();
-  Future getImage() async {
-    var image = await ImagePicker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
+  Future getImage(var type) async {
+    var imageFile = (type == 'camera')
+        ? await ImagePicker.pickImage(source: ImageSource.camera)
+        : await ImagePicker.pickImage(source: ImageSource.gallery);
+    if (imageFile != null) {
       setState(() {
+        _image = imageFile;
         isloadimg = true;
       });
-      Dio dio = new Dio();
-      FormData formData = new FormData.from(
-          {"upfile": new UploadFileInfo(image, "upload1.jpg")});
-      var response = await dio.post("${UrlApi().url}/index.php/api/uplaodfile",
-          data: formData);
-      if (response.statusCode == 200) {
-        setState(() {
-          isloadimg = false;
-          _data.imgname.add(response.data);
-        });
+      /*============ Drop Images =================*/
+      File croppedFile = await ImageCropper.cropImage(
+          sourcePath: imageFile.path,
+          ratioX: 1.5,
+          ratioY: 1.0,
+          toolbarTitle: 'ຕັດ​ຮູບ​ພາບ',
+          toolbarColor: Colors.red);
+      if (croppedFile != null) {
+        imageFile = croppedFile;
+        /*============ Send Images to API Save =================*/
+        Dio dio = new Dio();
+        FormData formData = new FormData.from(
+            {"upfile": new UploadFileInfo(imageFile, "upload1.jpg")});
+        var response = await dio
+            .post("${UrlApi().url}/index.php/api/uplaodfile", data: formData);
+        if (response.statusCode == 200) {
+          setState(() {
+            isloadimg = false;
+            _data.imgname.add(response.data);
+          });
+        } else {
+          print('Error upload image');
+        }
       } else {
-        print('Error upload image');
+        setState(() {
+          if (_data.imgname.length == 0) {
+            _image = null;
+          }
+          isloadimg = false;
+        });
       }
     }
-    setState(() {
-      _image = image;
-      // imgList.add(image);
-    });
   }
 
   /* -----------------------------------Remove image -----------------*/
@@ -152,9 +185,8 @@ class PropertiesFormeditState extends State<PropertiesFormedit> {
       }
       setState(() {
         _data.imgname = _data.imgname;
-        if(_data.imgname.length==0)
-        {
-          _image=null;
+        if (_data.imgname.length == 0) {
+          _image = null;
         }
       });
     }
@@ -196,7 +228,15 @@ class PropertiesFormeditState extends State<PropertiesFormedit> {
         validatetype = '';
       });
     }
-
+    if (_data.currency == null) {
+      setState(() {
+        validatecurrency = "ຕ້ອງເລືອກ​ສະ​ກູນ​ເງີນ";
+      });
+    } else {
+      setState(() {
+        validatecurrency = '';
+      });
+    }
     if (_data.per == null) {
       setState(() {
         validateper = "ຕ້ອງເລືອກ​ເດືອນ​ຫຼື​ປີ​ຕໍ່​ລາ​ຄາ​";
@@ -259,7 +299,7 @@ class PropertiesFormeditState extends State<PropertiesFormedit> {
         Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-               fullscreenDialog: true,
+                fullscreenDialog: true,
                 builder: (context) =>
                     ViewProperties(response.data['id'], response.data['did'])));
       } else {
@@ -327,12 +367,39 @@ class PropertiesFormeditState extends State<PropertiesFormedit> {
                     TextFormField(
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
-                          hintText: 'ລາ​ຄາ', labelText: '​ປ້ອນລາ​ຄາ/ກີບ'),
+                          hintText: 'ລາ​ຄາ', labelText: '​ປ້ອນລາ​ຄາ'),
                       initialValue: _data.fee,
                       onSaved: (var value) {
                         this._data.fee = value;
                       },
                       validator: this._validatFee,
+                    ),
+                    InputDecorator(
+                      decoration: const InputDecoration(
+                        labelText: 'ເລືອກ​ສະ​ກູນ​ເງີນ',
+                      ),
+                      isEmpty: _data.currency == null,
+                      child: new DropdownButtonHideUnderline(
+                        child: new DropdownButton<String>(
+                          value: _data.currency,
+                          isDense: true,
+                          onChanged: (String newValue) {
+                            setState(() {
+                              _data.currency = newValue;
+                            });
+                          },
+                          items: listcurrency.map((value) {
+                            return new DropdownMenuItem<String>(
+                              value: value,
+                              child: new Text(value),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '${validatecurrency}',
+                      style: TextStyle(color: Colors.red, fontSize: 12.0),
                     ),
                     InputDecorator(
                       decoration: const InputDecoration(
@@ -414,7 +481,42 @@ class PropertiesFormeditState extends State<PropertiesFormedit> {
                         color: Colors.red,
                       ),
                       onPressed: () {
-                        getImage();
+                        showDialog(
+                            context: context,
+                            child: AlertDialog(
+                                content: Row(
+                              children: <Widget>[
+                                OutlineButton.icon(
+                                  label: Text('GALLERY',
+                                      style: TextStyle(
+                                          fontSize: 10.0, color: Colors.black)),
+                                  icon: Icon(
+                                    Icons.image,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () {
+                                    getImage('gallery');
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.only(left: 10.0),
+                                  child: OutlineButton.icon(
+                                    label: Text('CAMERA',
+                                        style: TextStyle(fontSize: 10.0)),
+                                    icon: Icon(
+                                      Icons.camera,
+                                      color: Colors.red,
+                                    ),
+                                    onPressed: () {
+                                      getImage('camera');
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                )
+                              ],
+                            )));
+                       // getImage();
                       },
                     ),
                     Text(
@@ -459,4 +561,5 @@ class _PropertiesForm {
   var package;
   List imgname = List();
   var userID;
+  var currency;
 }

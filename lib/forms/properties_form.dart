@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:erent/forms/viewproperties.dart';
 import 'package:erent/url_api.dart';
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
 //import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart';
@@ -21,37 +22,42 @@ class PropertiesFormState extends State<PropertiesForm> {
   bool isloadimg = false;
   bool isloadsave = false;
   List listpropertytype = List();
-  String validatetype = '';
+  List listcurrency = List();
+  String validatetype = ''; 
   String validateper = '';
   String validateimg = '';
+  String validatecurrency = '';
 
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
   _PropertiesForm _data = _PropertiesForm();
-
   Future<Null> getListType() async {
     Dio dio = Dio();
     final response =
         await dio.get('${UrlApi().url}/index.php/api/listpropertiestype');
 
-    final responsepackge =
-        await dio.get('${UrlApi().url}/index.php/api/listpackage');
+    final responseCurrency =
+        await dio.get('${UrlApi().url}/index.php/api/listcurrency');
 
-    if (response.statusCode == 200 && responsepackge.statusCode == 200) {
+    if (response.statusCode == 200 && responseCurrency.statusCode == 200) {
       var jsonResponse = response.data;
-      var jsonResponsepackage = responsepackge.data;
+      var jsoncurrency = responseCurrency.data;
 
       // print(jsonResponse);
-      //print(jsonResponsepackage);
+      print(responseCurrency);
+
+      List listtype = List();
+      for (var item in jsonResponse['rows']) {
+        listtype.add('${item['name']}');
+      }
+
+      List currency = List();
+      for (var item in jsoncurrency['rows']) {
+        currency.add('${item['name']}');
+      }
       isLoading = false;
       setState(() {
-        for (var item in jsonResponse['rows']) {
-          listpropertytype.add('${item['name']}');
-        }
-
-        for (var itempackage in jsonResponsepackage['rows']) {
-          sampleData.add(new RadioModel(
-              false, '${itempackage['id']}', '${itempackage['name']}'));
-        }
+        listpropertytype = listtype;
+        listcurrency = currency;
       });
     } else {
       setState(() {
@@ -95,31 +101,47 @@ class PropertiesFormState extends State<PropertiesForm> {
 
 /* ------------------------ Upload Ingage -------------------------*/
   File _image;
-  //List imgList = List();
-  Future getImage() async {
-    var image = await ImagePicker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
+  Future getImage(var type) async {
+    var imageFile = (type == 'camera')
+        ? await ImagePicker.pickImage(source: ImageSource.camera)
+        : await ImagePicker.pickImage(source: ImageSource.gallery);
+    if (imageFile != null) {
       setState(() {
+        _image = imageFile;
         isloadimg = true;
       });
-      Dio dio = new Dio();
-      FormData formData = new FormData.from(
-          {"upfile": new UploadFileInfo(image, "upload1.jpg")});
-      var response = await dio.post("${UrlApi().url}/index.php/api/uplaodfile",
-          data: formData);
-      if (response.statusCode == 200) {
-        setState(() {
-          isloadimg = false;
-          _data.imgname.add(response.data);
-        });
+      /*============ Drop Images =================*/
+      File croppedFile = await ImageCropper.cropImage(
+          sourcePath: imageFile.path,
+          ratioX: 1.5,
+          ratioY: 1.0,
+          toolbarTitle: 'ຕັດ​ຮູບ​ພາບ',
+          toolbarColor: Colors.red);
+      if (croppedFile != null) {
+        imageFile = croppedFile;
+        /*============ Send Images to API Save =================*/
+        Dio dio = new Dio();
+        FormData formData = new FormData.from(
+            {"upfile": new UploadFileInfo(imageFile, "upload1.jpg")});
+        var response = await dio
+            .post("${UrlApi().url}/index.php/api/uplaodfile", data: formData);
+        if (response.statusCode == 200) {
+          setState(() {
+            isloadimg = false;
+            _data.imgname.add(response.data);
+          });
+        } else {
+          print('Error upload image');
+        }
       } else {
-        print('Error upload image');
+        setState(() {
+          if (_data.imgname.length == 0) {
+            _image = null;
+          }
+          isloadimg = false;
+        });
       }
     }
-    setState(() {
-      _image = image;
-      // imgList.add(image);
-    });
   }
 
   /* -----------------------------------Remove image -----------------*/
@@ -134,7 +156,6 @@ class PropertiesFormState extends State<PropertiesForm> {
     }
   }
 
-  List<RadioModel> sampleData = new List<RadioModel>();
   @override
   void initState() {
     // TODO: implement initState
@@ -169,6 +190,16 @@ class PropertiesFormState extends State<PropertiesForm> {
     } else {
       setState(() {
         validatetype = '';
+      });
+    }
+
+    if (_data.currency == null) {
+      setState(() {
+        validatecurrency = "ຕ້ອງເລືອກ​ສະ​ກູນ​ເງີນ";
+      });
+    } else {
+      setState(() {
+        validatecurrency = '';
       });
     }
 
@@ -222,6 +253,7 @@ class PropertiesFormState extends State<PropertiesForm> {
         'long': _data.long,
         'lat': _data.lat,
         'userID': _data.userID,
+        'currency': _data.currency,
       });
       var response = await dio.post(
           "${UrlApi().url}/index.php/api/createproperties",
@@ -300,7 +332,7 @@ class PropertiesFormState extends State<PropertiesForm> {
                     TextFormField(
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
-                          hintText: 'ລາ​ຄາ', labelText: '​ປ້ອນລາ​ຄາ/ກີບ'),
+                          hintText: 'ລາ​ຄາ', labelText: '​ປ້ອນລາ​ຄາ'),
                       onSaved: (var value) {
                         this._data.fee = value;
                       },
@@ -308,9 +340,36 @@ class PropertiesFormState extends State<PropertiesForm> {
                     ),
                     InputDecorator(
                       decoration: const InputDecoration(
+                        labelText: 'ເລືອກ​ສະ​ກູນ​ເງີນ',
+                      ),
+                      isEmpty: _data.currency == null,
+                      child: new DropdownButtonHideUnderline(
+                        child: new DropdownButton<String>(
+                          value: _data.currency,
+                          isDense: true,
+                          onChanged: (String newValue) {
+                            setState(() {
+                              _data.currency = newValue;
+                            });
+                          },
+                          items: listcurrency.map((value) {
+                            return new DropdownMenuItem<String>(
+                              value: value,
+                              child: new Text(value),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '${validatecurrency}',
+                      style: TextStyle(color: Colors.red, fontSize: 12.0),
+                    ),
+                    InputDecorator(
+                      decoration: const InputDecoration(
                         labelText: '​ເລືອກ ​ເດືອນ/ປີ ຕໍ່​ລາ​ຄາ​',
                       ),
-                      isEmpty: _data.per == '',
+                      isEmpty: _data.per == null,
                       child: new DropdownButtonHideUnderline(
                         child: new DropdownButton<String>(
                           value: _data.per,
@@ -384,7 +443,42 @@ class PropertiesFormState extends State<PropertiesForm> {
                         color: Colors.red,
                       ),
                       onPressed: () {
-                        getImage();
+                        showDialog(
+                            context: context,
+                            child: AlertDialog(
+                                content: Row(
+                              children: <Widget>[
+                                OutlineButton.icon(
+                                  label: Text('GALLERY',
+                                      style: TextStyle(
+                                          fontSize: 10.0, color: Colors.black)),
+                                  icon: Icon(
+                                    Icons.image,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () {
+                                    getImage('gallery');
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.only(left: 10.0),
+                                  child: OutlineButton.icon(
+                                    label: Text('CAMERA',
+                                        style: TextStyle(fontSize: 10.0)),
+                                    icon: Icon(
+                                      Icons.camera,
+                                      color: Colors.red,
+                                    ),
+                                    onPressed: () {
+                                      getImage('camera');
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                )
+                              ],
+                            )));
+                        //getImage();
                       },
                     ),
                     Text(
@@ -392,38 +486,6 @@ class PropertiesFormState extends State<PropertiesForm> {
                       style: TextStyle(color: Colors.red, fontSize: 12.0),
                     ),
                     Divider(),
-
-                    /* still package
-                      InputDecorator(
-                      decoration: const InputDecoration(
-                        labelText: '​ເລືອກ ແພັກ​ເກັດ',
-                      ),
-                      isEmpty: _data.package == '',
-                      child: Container(
-                      height: 350.0,
-                      child: ListView.builder(
-                        itemCount: sampleData.length,
-                        itemBuilder: (BuildContext context,  index) {
-                          return new InkWell(
-                            //highlightColor: Colors.red,
-                            splashColor: Colors.blueAccent,
-                            onTap: () {
-                              setState(() {
-                                sampleData.forEach(
-                                    (element) => element.isSelected = false);
-                                sampleData[index].isSelected = true;
-                               var package_id=RadioItem(sampleData[index])._item.buttonText;
-                               _data.package=package_id;
-                              });
-                            },
-                            child: new RadioItem(sampleData[index]),
-                          );
-                        },
-                      ),
-                    ),
-                    ), */
-                    ////////////////////////////////
-
                     (isloadsave)
                         ? Center(
                             child: Padding(
@@ -449,7 +511,6 @@ class PropertiesFormState extends State<PropertiesForm> {
     );
   }
 }
-
 class _PropertiesForm {
   var propertye;
   var detailes;
@@ -461,46 +522,6 @@ class _PropertiesForm {
   var package;
   List imgname = List();
   var userID;
+  var currency;
 }
 
-class RadioItem extends StatelessWidget {
-  final RadioModel _item;
-  RadioItem(this._item);
-  @override
-  Widget build(BuildContext context) {
-    return new Container(
-      margin: new EdgeInsets.all(15.0),
-      child: new Row(
-        mainAxisSize: MainAxisSize.max,
-        children: <Widget>[
-          new Container(
-            height: 25.0,
-            width: 25.0,
-            child: new Center(
-              child: _item.isSelected ? Icon(Icons.done) : Text(''),
-            ),
-            decoration: new BoxDecoration(
-              color: _item.isSelected ? Colors.red : Colors.transparent,
-              border: new Border.all(
-                  width: 1.0,
-                  color: _item.isSelected ? Colors.red : Colors.grey),
-              borderRadius: const BorderRadius.all(const Radius.circular(2.0)),
-            ),
-          ),
-          new Container(
-            margin: new EdgeInsets.only(left: 10.0),
-            child: new Text(_item.text),
-          )
-        ],
-      ),
-    );
-  }
-}
-
-class RadioModel {
-  bool isSelected;
-  final String buttonText;
-  final String text;
-
-  RadioModel(this.isSelected, this.buttonText, this.text);
-}
