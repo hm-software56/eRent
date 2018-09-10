@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:erent/url_api.dart';
 import 'package:flutter/material.dart';
@@ -16,16 +18,20 @@ class CommentState extends State<Comment> {
 /* ============== Get list comment ============= */
   List listComment = List();
   var photo_profile;
+  var userID;
   _Getlistcomment() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var photoProfile = await prefs.get('photo_profile');
+    var token = await prefs.get('token');
     Dio dio = new Dio();
     final responseList = await dio
         .get('${UrlApi().url}/index.php/api/listcomments?houseID=${houseID}');
     if (responseList.statusCode == 200) {
-      setState(() {
+      print(responseList.data); 
+      setState(() { 
         listComment = responseList.data;
         photo_profile = photoProfile;
+        userID=token;
       });
     }
   }
@@ -34,12 +40,31 @@ class CommentState extends State<Comment> {
   var answerInput;
   int idcomment = 0;
   answerComment(var answer, int idcommentinput) async {
-    print(answer);
+    Dio dio = new Dio();
+    FormData formData = new FormData.from({
+      'smg': answer,
+      'userID': userID,
+      'houseID': houseID,
+      'idq':idcommentinput
+    });
+    var response = await dio.post("${UrlApi().url}/index.php/api/addcomments",
+        data: formData);
+    if (response.statusCode == 200) {
+    }
+    //print(answer);
     setState(() {
       idcomment = idcommentinput;
       answerInput = answer;
     });
-    print(idcomment);
+    //print(idcomment);
+  }
+
+  Future<Null> getanswer(int idq) async {
+    Dio dio = new Dio();
+    final responseList = await dio
+        .get('${UrlApi().url}/index.php/api/listanswers?idq=${idq}');
+    if (responseList.statusCode == 200) {
+    }
   }
 
   @override
@@ -53,7 +78,7 @@ class CommentState extends State<Comment> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Comment'),
+        title: Text('Comment'), 
       ),
       body: ListView.builder(
         itemCount: listComment.length,
@@ -72,7 +97,7 @@ class CommentState extends State<Comment> {
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: <
                     Widget>[
               Text('${listComment[index]['smg']}'),
-              (answerInput == null)
+              idcomment != int.parse(listComment[index]['id'])
                   ? IconButton(
                       icon: Icon(
                         Icons.question_answer,
@@ -94,7 +119,7 @@ class CommentState extends State<Comment> {
                               ),
                               actions: <Widget>[
                                 FlatButton(
-                                    child: Icon(Icons.send, color: Colors.blue),
+                                    child: Icon(Icons.send, color: Colors.red),
                                     onPressed: () {
                                       answerComment(answerInput,
                                           int.parse(listComment[index]['id']));
@@ -104,15 +129,14 @@ class CommentState extends State<Comment> {
                             ));
                       },
                     )
-                  : '',
-              Divider(),
+                  : Text(''), 
               (idcomment == int.parse(listComment[index]['id']))
-                  ? Text('${answerInput}',
-                      style: TextStyle(
-                        color: Colors.blue,
+                  ? Text('www', 
+                      style: TextStyle(  
+                        color: Colors.blue, 
                       ))
-                  : Text('')
-            ]),
+                  :Text('sssss')
+            ]), 
           );
         },
       ),
