@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:erent/url_api.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:money/money.dart';
 
 class ListhouseUser extends StatefulWidget {
   ListhouseUserState createState() => ListhouseUserState();
@@ -20,6 +21,7 @@ class ListhouseUserState extends State<ListhouseUser> {
   bool isLoading = true;
   var listhouse;
   var userID;
+  
 
   final GlobalKey<ScaffoldState> _scoffoldKey = new GlobalKey<ScaffoldState>();
   Future<Null> getlisthouses() async {
@@ -125,6 +127,8 @@ class ListhouseUserState extends State<ListhouseUser> {
               child: ListView.builder(
                 itemBuilder: (context, int index) {
                   var per = (listhouse[index]['per'] == "m") ? "ເດືອນ" : "ປີ";
+                 // int a=listhouse[index]['fee'];
+                  //final money = Money(a, Currency('USD'));
                   return Column(
                     children: <Widget>[
                       ListTile(

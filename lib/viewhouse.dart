@@ -169,7 +169,15 @@ class ViewHouseState extends State<ViewHouse> {
       // print(response);
     }
   }
-
+  Future getlistcomment() async {
+    Dio dio = new Dio();
+    final responseList = await dio
+          .get('${UrlApi().url}/index.php/api/listcomments?houseID=${houseID}');
+      setState(() {
+        listComment = responseList.data;
+       // Countcomment = 1 + Countcomment;
+      });
+  }
   @override
   void initState() {
     // TODO: implement initState
@@ -265,7 +273,7 @@ class ViewHouseState extends State<ViewHouse> {
                           style: TextStyle(color: Colors.red),
                         ),
                   Text(
-                      'ລາ​ຄາ:${detailhouse[0]['fee']}/${(detailhouse[0]['per'] == "m") ? "ເດືອນ" : "ປີ"}'),
+                      'ລາ​ຄາ:${detailhouse[0]['fee']} ${detailhouse[0]['currency_name']}/${(detailhouse[0]['per'] == "m") ? "ເດືອນ" : "ປີ"}'),
                   Divider(),
                   Row(
                     children: <Widget>[
@@ -325,6 +333,7 @@ class ViewHouseState extends State<ViewHouse> {
                                             })
                                       ],
                                     ));
+                                    getlistcomment();
                               },
                               icon: Icon(
                                 Icons.comment,

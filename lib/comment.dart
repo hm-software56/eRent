@@ -32,15 +32,14 @@ class CommentState extends State<Comment> {
 
   /*========= answer comment =======*/
   var answerInput;
-  int idcomment=0;
-  answerComment(var answer, var idcommentinput) async {
+  int idcomment = 0;
+  answerComment(var answer, int idcommentinput) async {
     print(answer);
-    setState(() { 
+    setState(() {
       idcomment = idcommentinput;
-      print('ssss');
+      answerInput = answer;
     });
     print(idcomment);
-    
   }
 
   @override
@@ -69,47 +68,51 @@ class CommentState extends State<Comment> {
             ),
             title:
                 Text('${listComment[index]['user']['register']['first_name']}'),
-            subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text('${listComment[index]['smg']}'),
-                  IconButton(
-                    icon: Icon(
-                      Icons.question_answer,
-                      color: Colors.red,
-                    ),
-                    iconSize: 20.0,
-                    onPressed: () {
-                      showDialog(
-                          context: context,
-                          child: AlertDialog(
-                            content: TextField(
-                              maxLines: 2,
-                              keyboardType: TextInputType.multiline,
-                              decoration:
-                                  InputDecoration(labelText: "ປ້ອນ​ຄຳ​ເຫັນ"),
-                              onChanged: (String text) {
-                                answerInput = text;
-                              },
-                            ),
-                            actions: <Widget>[
-                              FlatButton(
-                                  child: Icon(Icons.send, color: Colors.blue),
-                                  onPressed: () {
-                                    answerComment(answerInput,
-                                        '${listComment[index]['id']}');
-                                  })
-                            ],
-                          ));
-                    },
-                  ),
-                  (idcomment == listComment[index]['id'])
-                      ? idcomment
-                      : Text('${idcomment}', 
-                          style: TextStyle(
-                            color: Colors.blue,
-                          )),
-                ]),
+            subtitle:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: <
+                    Widget>[
+              Text('${listComment[index]['smg']}'),
+              (answerInput == null)
+                  ? IconButton(
+                      icon: Icon(
+                        Icons.question_answer,
+                        color: Colors.red,
+                      ),
+                      iconSize: 20.0,
+                      onPressed: () {
+                        showDialog(
+                            context: context,
+                            child: AlertDialog(
+                              content: TextField(
+                                maxLines: 2,
+                                keyboardType: TextInputType.multiline,
+                                decoration:
+                                    InputDecoration(labelText: "ປ້ອນ​ຄຳ​ເຫັນ"),
+                                onChanged: (String text) {
+                                  answerInput = text;
+                                },
+                              ),
+                              actions: <Widget>[
+                                FlatButton(
+                                    child: Icon(Icons.send, color: Colors.blue),
+                                    onPressed: () {
+                                      answerComment(answerInput,
+                                          int.parse(listComment[index]['id']));
+                                      Navigator.of(context).pop();
+                                    })
+                              ],
+                            ));
+                      },
+                    )
+                  : '',
+              Divider(),
+              (idcomment == int.parse(listComment[index]['id']))
+                  ? Text('${answerInput}',
+                      style: TextStyle(
+                        color: Colors.blue,
+                      ))
+                  : Text('')
+            ]),
           );
         },
       ),
