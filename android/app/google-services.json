@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "742606009659",
+    "firebase_url": "https://erent-1534315986709.firebaseio.com",
+    "project_id": "erent-1534315986709",
+    "storage_bucket": "erent-1534315986709.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:742606009659:android:0b22ddc5a4a17ff0",
+        "android_client_info": {
+          "package_name": "com.cyberia.erent"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "742606009659-vd8shc7vijbfd33ia66ie2iaduec741q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCLh0ikHuPkDTnWuSnvD3so7ES_mxlcYD4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

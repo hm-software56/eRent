@@ -27,11 +27,11 @@ class CommentState extends State<Comment> {
     final responseList = await dio
         .get('${UrlApi().url}/index.php/api/listcomments?houseID=${houseID}');
     if (responseList.statusCode == 200) {
-      print(responseList.data); 
-      setState(() { 
+      print(responseList.data);
+      setState(() {
         listComment = responseList.data;
         photo_profile = photoProfile;
-        userID=token;
+        userID = token;
       });
     }
   }
@@ -45,26 +45,24 @@ class CommentState extends State<Comment> {
       'smg': answer,
       'userID': userID,
       'houseID': houseID,
-      'idq':idcommentinput
+      'idq': idcommentinput
     });
-    var response = await dio.post("${UrlApi().url}/index.php/api/addcomments",
+    var response = await dio.post("${UrlApi().url}/index.php/api/anwercomments",
         data: formData);
     if (response.statusCode == 200) {
+      setState(() {
+        listComment = response.data;
+      });
     }
-    //print(answer);
-    setState(() {
-      idcomment = idcommentinput;
-      answerInput = answer;
-    });
+
     //print(idcomment);
   }
 
   Future<Null> getanswer(int idq) async {
     Dio dio = new Dio();
-    final responseList = await dio
-        .get('${UrlApi().url}/index.php/api/listanswers?idq=${idq}');
-    if (responseList.statusCode == 200) {
-    }
+    final responseList =
+        await dio.get('${UrlApi().url}/index.php/api/listanswers?idq=${idq}');
+    if (responseList.statusCode == 200) {}
   }
 
   @override
@@ -78,7 +76,7 @@ class CommentState extends State<Comment> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Comment'), 
+        title: Text('Comment'),
       ),
       body: ListView.builder(
         itemCount: listComment.length,
@@ -97,7 +95,7 @@ class CommentState extends State<Comment> {
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: <
                     Widget>[
               Text('${listComment[index]['smg']}'),
-              idcomment != int.parse(listComment[index]['id'])
+              (listComment[index]['answerComments'].length == 0)
                   ? IconButton(
                       icon: Icon(
                         Icons.question_answer,
@@ -127,17 +125,11 @@ class CommentState extends State<Comment> {
                                     })
                               ],
                             ));
-                      },
+                      }, 
                     )
-                  : Text(''), 
-              (idcomment == int.parse(listComment[index]['id']))
-                  ? Text('www', 
-                      style: TextStyle(  
-                        color: Colors.blue, 
-                      ))
-                  :Text('sssss')
+                  : Text('${listComment[index]['answerComments'][0]['smg']}',style:TextStyle(color: Colors.green),),
             ]), 
-          );
+          ); 
         },
       ),
     );

@@ -1,4 +1,4 @@
-package com.example.erent;
+package com.cyberia.erent;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;
