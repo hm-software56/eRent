@@ -249,10 +249,10 @@ class ViewHouseState extends State<ViewHouse> {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => ViewMap(long, lat)));
+                              builder: (context) => ViewMap(houseID)));
                     },
                     label: Text(
-                      'view Map',
+                      'ເບີ່ງ​ແຜ່ນ​ທີ',
                       style: TextStyle(color: Colors.white),
                     ),
                     icon: Icon(

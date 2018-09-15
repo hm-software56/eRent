@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:erent/forms/getmap.dart';
 import 'package:erent/forms/viewproperties.dart';
 import 'package:erent/url_api.dart';
 import 'package:flutter/material.dart';
@@ -51,7 +52,7 @@ class PropertiesFormeditState extends State<PropertiesFormedit> {
         _data.fee = responsepro.data['rows'][0]['fee'];
         _data.long = responsepro.data['rows'][0]['longtitude'];
         _data.lat = responsepro.data['rows'][0]['lattitude'];
-        _data.currency = responsepro.data['rows'][0][''];
+        _data.currency = responsepro.data['rows'][0]['currency_name'];
 
         if (responsepro.data['rows'][0]['fee'] == 'm') {
           _data.per = '​ເດືອນ';
@@ -262,6 +263,8 @@ class PropertiesFormeditState extends State<PropertiesFormedit> {
   Future<Null> submit() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     _data.userID = await prefs.get('token');
+    _data.lat = await prefs.get('lat');
+    _data.long = await prefs.get('long');
 
     if (this._formKey.currentState.validate()) {
       _formKey.currentState.save(); // Save our form now.
@@ -287,21 +290,23 @@ class PropertiesFormeditState extends State<PropertiesFormedit> {
         'long': _data.long,
         'lat': _data.lat,
         'userID': _data.userID,
+        'currency': _data.currency,
       });
       var response = await dio.post(
           "${UrlApi().url}/index.php/api/editproperties?id=${proID}",
           data: formData);
-      if (response.statusCode == 200 && response.data['id'] != null) {
-        print(response);
+      if (response.statusCode == 200) { 
+        prefs.remove('lat');
+        prefs.remove('long');
         setState(() {
           isloadsave = false;
         });
-        Navigator.pushReplacement(
+        Navigator.pushReplacement( 
             context,
-            MaterialPageRoute(
+            MaterialPageRoute( 
                 fullscreenDialog: true,
-                builder: (context) =>
-                    ViewProperties(response.data['id'], response.data['did'])));
+                builder: (context) =>  
+                     ViewProperties(int.parse(response.data['id']), int.parse(response.data['did']))));
       } else {
         print('Error Post Data');
       }
@@ -428,7 +433,7 @@ class PropertiesFormeditState extends State<PropertiesFormedit> {
                       '${validateper}',
                       style: TextStyle(color: Colors.red, fontSize: 12.0),
                     ),
-                    Divider(),
+                    /*Divider(),
                     Text('ປ້ອນແຜ່ນ​ທີ'),
                     TextFormField(
                       keyboardType: TextInputType.text,
@@ -444,6 +449,20 @@ class PropertiesFormeditState extends State<PropertiesFormedit> {
                       initialValue: _data.lat,
                       onSaved: (var value) {
                         this._data.lat = value;
+                      },
+                    ),*/
+                    OutlineButton.icon(
+                      label: Text('ແຜ່ນ​ທີ່'),
+                      icon: Icon(
+                        Icons.map,
+                        color: Colors.red,
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                fullscreenDialog: true,
+                                builder: (context) => GetMap()));
                       },
                     ),
                     (isloadimg)
@@ -475,7 +494,7 @@ class PropertiesFormeditState extends State<PropertiesFormedit> {
                             ),
                           ),
                     OutlineButton.icon(
-                      label: Text('ເລືອ​ກຮ​ູບ​ພາບ'),
+                      label: Text('ເລືອ​ກຮ​ູບ​ພາບ'), 
                       icon: Icon(
                         Icons.add_a_photo,
                         color: Colors.red,

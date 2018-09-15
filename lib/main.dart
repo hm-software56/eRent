@@ -1,3 +1,4 @@
+import 'package:erent/forms/getmap.dart';
 import 'package:erent/forms/listhouse_user.dart';
 import 'package:erent/profile.dart';
 import 'package:flutter/material.dart';
@@ -29,8 +30,8 @@ class MyApp extends StatelessWidget {
       theme: new ThemeData(
         primarySwatch: Colors.red,
       ),
-      home:Login(),
-      routes: routes,
+      home:Login(),  
+      routes: routes, 
     );
   }
 }

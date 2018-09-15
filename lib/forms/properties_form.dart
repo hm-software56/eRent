@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:io';
 
 //import 'package:async/async.dart';
+import 'package:erent/forms/getmap.dart';
 import 'package:erent/forms/viewproperties.dart';
 import 'package:erent/url_api.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +24,7 @@ class PropertiesFormState extends State<PropertiesForm> {
   bool isloadsave = false;
   List listpropertytype = List();
   List listcurrency = List();
-  String validatetype = ''; 
+  String validatetype = '';
   String validateper = '';
   String validateimg = '';
   String validatecurrency = '';
@@ -228,6 +229,8 @@ class PropertiesFormState extends State<PropertiesForm> {
   Future<Null> submit() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     _data.userID = await prefs.get('token');
+    _data.lat = await prefs.get('lat');
+    _data.long = await prefs.get('long');
 
     if (this._formKey.currentState.validate()) {
       _formKey.currentState.save(); // Save our form now.
@@ -259,7 +262,8 @@ class PropertiesFormState extends State<PropertiesForm> {
           "${UrlApi().url}/index.php/api/createproperties",
           data: formData);
       if (response.statusCode == 200 && response.data['id'] != null) {
-        print(response);
+        prefs.remove('lat');
+        prefs.remove('long');
         setState(() {
           isloadsave = false;
         });
@@ -267,7 +271,7 @@ class PropertiesFormState extends State<PropertiesForm> {
             context,
             MaterialPageRoute(
                 builder: (context) =>
-                    ViewProperties(response.data['id'], response.data['did'])));
+                    ViewProperties(int.parse(response.data['id']), int.parse(response.data['did']))));
       } else {
         print('Error Post Data');
       }
@@ -392,8 +396,7 @@ class PropertiesFormState extends State<PropertiesForm> {
                       '${validateper}',
                       style: TextStyle(color: Colors.red, fontSize: 12.0),
                     ),
-                    Divider(),
-                    Text('ປ້ອນແຜ່ນ​ທີ'),
+                    /*Text('ປ້ອນແຜ່ນ​ທີ'),
                     TextFormField(
                       keyboardType: TextInputType.text,
                       decoration: InputDecoration(labelText: 'ປ້ອນ longitude'),
@@ -406,6 +409,20 @@ class PropertiesFormState extends State<PropertiesForm> {
                       decoration: InputDecoration(labelText: 'ປ້ອນ latitude'),
                       onSaved: (var value) {
                         this._data.lat = value;
+                      },
+                    ),*/
+                    OutlineButton.icon(
+                      label: Text('ແຜ່ນ​ທີ່'),
+                      icon: Icon(
+                        Icons.map,
+                        color: Colors.red,
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                fullscreenDialog: true,
+                                builder: (context) => GetMap()));
                       },
                     ),
                     (isloadimg)
@@ -511,6 +528,7 @@ class PropertiesFormState extends State<PropertiesForm> {
     );
   }
 }
+
 class _PropertiesForm {
   var propertye;
   var detailes;
@@ -524,4 +542,3 @@ class _PropertiesForm {
   var userID;
   var currency;
 }
-

@@ -1,51 +1,39 @@
+import 'package:erent/url_api.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong/latlong.dart';
+import 'package:flutter_plugin_webview/webview_scaffold.dart';
 
 class ViewMap extends StatefulWidget{
-  double long;
-  double lat;
-  ViewMapState createState()=>  ViewMapState(this.long,this.lat);
-  ViewMap(this.long,this.lat);
+  var houseID;
+  ViewMapState createState()=>  ViewMapState(houseID);
+  ViewMap(this.houseID);
 }
 
 
 class ViewMapState extends State<ViewMap> {
-  double long;
-  double lat;
-  ViewMapState(this.long,this.lat);
+  var houseID;
+  ViewMapState(this.houseID);
   
   @override
-  Widget build(BuildContext context){
-    return new FlutterMap(
-      options: new MapOptions(
-        center: new LatLng(long, lat),
-        zoom: 13.0,
-      ),
-      layers: [
-        new TileLayerOptions(
-          urlTemplate: "https://api.tiles.mapbox.com/v4/"
-              "{id}/{z}/{x}/{y}@2x.png?access_token={accessToken}",
-          additionalOptions: {
-            'accessToken': 'pk.eyJ1IjoiZGF4aW9uZ2luZm8iLCJhIjoiY2prdXVvbzhiMGFqbTN3bXF0OXUyNDBieCJ9.XPJHscYSWGrXWBna8eRJfA',
-            'id': 'mapbox.streets',
-          },
+  Widget build(BuildContext context) => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: new ThemeData(
+          primarySwatch: Colors.red,
         ),
-        new MarkerLayerOptions(
-          markers: [
-            new Marker(
-              width: 40.0,
-              height: 40.0,
-              point: new LatLng(long, lat),
-              builder: (ctx) =>
-              new Container(
-                child:Icon(Icons.location_on,color:Colors.red,), 
-                
+        home: (houseID == null)
+            ? Center(child: CircularProgressIndicator())
+            : WebViewScaffold(
+                url: "${UrlApi().url}/index.php/api/viewmap?id=${houseID}",
+                appBar: AppBar(
+                  title: Text('ແຜ່ນ​ທີ່'),
+                  actions: <Widget>[
+                    IconButton(
+                      icon: Icon(Icons.close),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    )
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
+      );
 }

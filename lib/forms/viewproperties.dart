@@ -6,13 +6,14 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:erent/forms/package.dart';
 import 'package:erent/forms/properties_formedit.dart';
 import 'package:erent/url_api.dart';
+import 'package:erent/view_map.dart';
 import 'package:erent/viewphoto.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class ViewProperties extends StatefulWidget {
-  var houseID;
-  var detailID;
+  int houseID;
+  int detailID;
   ViewProperties(this.houseID, this.detailID);
 
   ViewPropertiesState createState() =>
@@ -20,8 +21,8 @@ class ViewProperties extends StatefulWidget {
 }
 
 class ViewPropertiesState extends State<ViewProperties> {
-  var houseID;
-  var detailID;
+  int houseID;
+  int detailID;
 
   ViewPropertiesState(this.houseID, this.detailID);
 
@@ -42,7 +43,7 @@ class ViewPropertiesState extends State<ViewProperties> {
       var jsonResponsephoto = json.decode(responsephoto.body);
 
       //print(jsonResponse);
-      // print(jsonResponsephoto);
+       //print(jsonResponsephoto);
 
       setState(() {
         isLoading = false;
@@ -177,6 +178,23 @@ class ViewPropertiesState extends State<ViewProperties> {
                                   errorWidget: new Icon(Icons.error),
                                 ),
                               ),
+                        FlatButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ViewMap(houseID)));
+                    },
+                    label: Text(
+                      'ເບີ່ງ​ແຜ່ນ​ທີ',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    icon: Icon(
+                      Icons.location_on,
+                      color: Colors.white,
+                    ),
+                    color: Colors.red,
+                  ),
                         Divider(),
                         Text('${detailhouse[0]['details']}'),
                         (detailhouse[0]['dstatus'] == '1')
@@ -189,7 +207,7 @@ class ViewPropertiesState extends State<ViewProperties> {
                                 style: TextStyle(color: Colors.red),
                               ),
                         Text(
-                            'ລາ​ຄາ:${detailhouse[0]['fee']}/${(detailhouse[0]['per'] == "m") ? "ເດືອນ" : "ປີ"}'),
+                            'ລາ​ຄາ:${detailhouse[0]['fee']} ${detailhouse[0]['currency_name']}/${(detailhouse[0]['per'] == "m") ? "ເດືອນ" : "ປີ"}'),
                         Divider(),
                         (detailhouse[0]['status'] == '0')
                             ? Text(

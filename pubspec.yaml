@@ -15,16 +15,16 @@ dependencies:
   parallax_image: any
   photo_view: ^0.0.3
   transparent_image: ^0.1.0
-  image_picker: ^0.4.6
+  image_picker: ^0.4.10
   dio: ^1.0.0
-  flutter_one_signal: ^0.2.1
   flutter_launcher_icons: "^0.6.1"
   flutter_map: any
   cached_network_image: "^0.4.1"
-  url_launcher: ^3.0.3
   carousel_slider: ^0.0.7
   image_cropper: ^0.0.6
   money: ^0.2.1
+  flutter_one_signal: ^0.2.1
+  flutter_plugin_webview: ^0.0.14
   
   
 

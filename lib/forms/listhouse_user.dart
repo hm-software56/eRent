@@ -138,8 +138,8 @@ class ListhouseUserState extends State<ListhouseUser> {
                               MaterialPageRoute(
                                   fullscreenDialog: true,
                                   builder: (context) => ViewProperties(
-                                      listhouse[index]['id'],
-                                      listhouse[index]['did'])));
+                                      int.parse(listhouse[index]['id']),
+                                          int.parse(listhouse[index]['did']))));
                         },
                         leading: CachedNetworkImage(
                           width: 100.0,
@@ -189,8 +189,8 @@ class ListhouseUserState extends State<ListhouseUser> {
                                   MaterialPageRoute(
                                       fullscreenDialog: true,
                                       builder: (context) => PropertiesFormedit(
-                                          listhouse[index]['id'],
-                                          listhouse[index]['did'])));
+                                          int.parse(listhouse[index]['id']),
+                                          int.parse(listhouse[index]['did']))));
                             },
                           ),
                         ]),
