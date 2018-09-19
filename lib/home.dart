@@ -9,7 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-//import 'package:flutter_one_signal/flutter_one_signal.dart';
+import 'package:flutter_one_signal/flutter_one_signal.dart';
 import 'package:dio/dio.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -25,7 +25,7 @@ class HomeState extends State<Home> {
   var photo_bg;
 
 /* ====================== Onsigal Push notifycation ============================= */
-  /*_initOneSignal() async {
+  _initOneSignal() async {
     var notificationsPermissionGranted = await FlutterOneSignal.startInit(
         appId: '321b77aa-e8ff-4922-a91f-c6a9ed89bffe',
         // todo Replace with your own, this won't work for you
@@ -50,7 +50,7 @@ class HomeState extends State<Home> {
         "${UrlApi().url}/index.php/api/userpayer?id=${gettoken}",
         data: formData);
     //print(response);
-  }*/
+  }
 
   /*======================Get User Login ========================*/
 
