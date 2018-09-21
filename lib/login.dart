@@ -1,6 +1,8 @@
 import 'package:erent/home.dart';
+import 'package:erent/translations.dart';
 import 'package:flutter/material.dart';
 import 'package:erent/url_api.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'dart:convert';
@@ -11,15 +13,38 @@ class Login extends StatefulWidget {
 }
 
 class LoginState extends State<Login> {
+  Map translate = {'daxiong': 'daxiong'};
+  String lang;
+  String getlang;
+  Translations localized = Translations();
+  Future loadlang() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var getlang = await prefs.get('lang');
+    if (getlang != lang) {
+      prefs.setString('lang', lang);
+      setState(() {
+        getlang = lang;
+      });
+    } else {
+      if (getlang == null) {
+        prefs.setString('lang', localized.lang);
+        setState(() {
+          getlang = localized.lang;
+        });
+      }
+    }
+
+    print(getlang);
+    String jsonContent = await rootBundle.loadString("locale/${getlang}.json");
+    setState(() {
+      translate = json.decode(jsonContent);
+    });
+  }
+
   TextEditingController ctrlUsername = TextEditingController();
   TextEditingController ctrlPassword = TextEditingController();
-
   final GlobalKey<ScaffoldState> _scoffoldKey = new GlobalKey<ScaffoldState>();
-
   bool isLoading = false;
-  
-
-  
   Future<Null> checkLoginged() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var token = await prefs.get('token');
@@ -33,6 +58,7 @@ class LoginState extends State<Login> {
   void initState() {
     super.initState();
     checkLoginged();
+    loadlang();
   }
 
   Future<Null> doLogin() async {
@@ -101,16 +127,6 @@ class LoginState extends State<Login> {
     }
   }
 
-  /*void _doLogin() {
-    print(ctrlUsername.text);
-    print(ctrlPassword.text);
-
-    if (ctrlUsername.text == "admin" && ctrlPassword.text == 'admin') {
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => Home()));
-    }
-  }*/
-
   @override
   Widget build(BuildContext context) {
     final logo = Hero(
@@ -125,16 +141,16 @@ class LoginState extends State<Login> {
     final email = TextFormField(
       validator: (value) {
         if (value.isEmpty) {
-          return '​ທ່ານ​ຕ້ອງ​ປ້ອນ​ອິ​ເມວ';
+          return localized.list(translate, 'Input your email');
         }
       },
       controller: ctrlUsername,
       keyboardType: TextInputType.emailAddress,
       decoration: InputDecoration(
-        labelText: "ອີ​ເມວ ຫຼື ເບີ​ໂທ",
+        labelText: localized.list(translate, 'Email or Phome'),
         ////prefixIcon: Icon(Icons.email),
         //contentPadding: EdgeInsets.fromLTRB(10.0, 10.0, 10.0, 10.0),
-       // border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+        // border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
       ),
     );
 
@@ -142,10 +158,10 @@ class LoginState extends State<Login> {
       controller: ctrlPassword,
       obscureText: true,
       decoration: InputDecoration(
-       // prefixIcon: Icon(Icons.vpn_key),
-        labelText: 'ລະ​ຫັດ​ຜ່ານ',
-       // contentPadding: EdgeInsets.fromLTRB(10.0, 10.0, 10.0, 10.0),
-       // border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+        // prefixIcon: Icon(Icons.vpn_key),
+        labelText: localized.list(translate, 'Password'),
+        // contentPadding: EdgeInsets.fromLTRB(10.0, 10.0, 10.0, 10.0),
+        // border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
       ),
     );
 
@@ -160,7 +176,8 @@ class LoginState extends State<Login> {
           doLogin();
         },
         color: Colors.red,
-        child: Text('​ເຂົ້າ​ລະ​ບົບ', style: TextStyle(color: Colors.white)),
+        child: Text(localized.list(translate, 'Login'),
+            style: TextStyle(color: Colors.white)),
       ),
     );
 
@@ -171,7 +188,7 @@ class LoginState extends State<Login> {
             Expanded(
               child: FlatButton(
                 child: Text(
-                  '​ລົງ​ທະ​ບຽນ',
+                  localized.list(translate, 'Register'),
                   style: TextStyle(color: Colors.black54),
                 ),
                 onPressed: () {
@@ -182,7 +199,7 @@ class LoginState extends State<Login> {
             Expanded(
               child: FlatButton(
                 child: Text(
-                  'ລືມ​ລະ​ຫັດ​ຜ່ານ.?',
+                  localized.list(translate, 'Forget password.?'),
                   style: TextStyle(color: Colors.black54),
                 ),
                 onPressed: () {},
@@ -202,6 +219,20 @@ class LoginState extends State<Login> {
             shrinkWrap: true,
             padding: EdgeInsets.only(left: 24.0, right: 24.0),
             children: <Widget>[
+              DropdownButton<String>(
+                items: <String>['la', 'en', 'C', 'D'].map((String value) {
+                  return new DropdownMenuItem<String>(
+                    value: value,
+                    child: new Text(value),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    lang = value;
+                  });
+                  loadlang();
+                },
+              ),
               logo,
               email,
               Padding(
