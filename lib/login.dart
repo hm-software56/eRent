@@ -13,31 +13,31 @@ class Login extends StatefulWidget {
 }
 
 class LoginState extends State<Login> {
-  Map translate = {'daxiong': 'daxiong'};
-  String lang;
-  String getlang;
   Translations localized = Translations();
   Future loadlang() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    var getlang = await prefs.get('lang');
-    if (getlang != lang) {
-      prefs.setString('lang', lang);
+    localized.getlang = await prefs.get('lang');
+    if (localized.lang != null && localized.getlang != localized.lang) {
+      prefs.setString('lang', localized.lang);
+      print('aaaaa');
       setState(() {
-        getlang = lang;
+        localized.getlang = localized.lang;
       });
     } else {
-      if (getlang == null) {
-        prefs.setString('lang', localized.lang);
+      print('ddddd');
+      if (localized.getlang == null) {
+        prefs.setString('lang', localized.lanngdefault);
         setState(() {
-          getlang = localized.lang;
+          localized.getlang = localized.lanngdefault;
         });
       }
     }
 
-    print(getlang);
-    String jsonContent = await rootBundle.loadString("locale/${getlang}.json");
+    print(localized.getlang);
+    String jsonContent =
+        await rootBundle.loadString("locale/${localized.getlang}.json");
     setState(() {
-      translate = json.decode(jsonContent);
+      localized.translate = json.decode(jsonContent);
     });
   }
 
@@ -141,13 +141,13 @@ class LoginState extends State<Login> {
     final email = TextFormField(
       validator: (value) {
         if (value.isEmpty) {
-          return localized.list(translate, 'Input your email');
+          return localized.list(localized.translate, 'Input your email');
         }
       },
       controller: ctrlUsername,
       keyboardType: TextInputType.emailAddress,
       decoration: InputDecoration(
-        labelText: localized.list(translate, 'Email or Phome'),
+        labelText: localized.list(localized.translate, 'Email or Phome'),
         ////prefixIcon: Icon(Icons.email),
         //contentPadding: EdgeInsets.fromLTRB(10.0, 10.0, 10.0, 10.0),
         // border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
@@ -159,7 +159,7 @@ class LoginState extends State<Login> {
       obscureText: true,
       decoration: InputDecoration(
         // prefixIcon: Icon(Icons.vpn_key),
-        labelText: localized.list(translate, 'Password'),
+        labelText: localized.list(localized.translate, 'Password'),
         // contentPadding: EdgeInsets.fromLTRB(10.0, 10.0, 10.0, 10.0),
         // border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
       ),
@@ -176,7 +176,7 @@ class LoginState extends State<Login> {
           doLogin();
         },
         color: Colors.red,
-        child: Text(localized.list(translate, 'Login'),
+        child: Text(localized.list(localized.translate, 'Login'),
             style: TextStyle(color: Colors.white)),
       ),
     );
@@ -188,7 +188,7 @@ class LoginState extends State<Login> {
             Expanded(
               child: FlatButton(
                 child: Text(
-                  localized.list(translate, 'Register'),
+                  localized.list(localized.translate, 'Register'),
                   style: TextStyle(color: Colors.black54),
                 ),
                 onPressed: () {
@@ -199,7 +199,7 @@ class LoginState extends State<Login> {
             Expanded(
               child: FlatButton(
                 child: Text(
-                  localized.list(translate, 'Forget password.?'),
+                  localized.list(localized.translate, 'Forget password.?'),
                   style: TextStyle(color: Colors.black54),
                 ),
                 onPressed: () {},
@@ -212,6 +212,31 @@ class LoginState extends State<Login> {
 
     return Form(
       child: Scaffold(
+        appBar: AppBar(
+          title: Row(
+            children: <Widget>[
+              DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: localized.lang,
+                  isDense: true,
+                  onChanged: (String newValue) {
+                    setState(() {
+                      localized.lang = newValue;
+                    });
+
+                    loadlang();
+                  },
+                  items: ['la', 'en'].map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
+        ),
         backgroundColor: Colors.white,
         key: _scoffoldKey,
         body: Center(
@@ -219,20 +244,6 @@ class LoginState extends State<Login> {
             shrinkWrap: true,
             padding: EdgeInsets.only(left: 24.0, right: 24.0),
             children: <Widget>[
-              DropdownButton<String>(
-                items: <String>['la', 'en', 'C', 'D'].map((String value) {
-                  return new DropdownMenuItem<String>(
-                    value: value,
-                    child: new Text(value),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    lang = value;
-                  });
-                  loadlang();
-                },
-              ),
               logo,
               email,
               Padding(
