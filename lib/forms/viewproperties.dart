@@ -5,11 +5,14 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:erent/forms/package.dart';
 import 'package:erent/forms/properties_formedit.dart';
+import 'package:erent/translations.dart';
 import 'package:erent/url_api.dart';
 import 'package:erent/view_map.dart';
 import 'package:erent/viewphoto.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ViewProperties extends StatefulWidget {
   int houseID;
@@ -25,6 +28,31 @@ class ViewPropertiesState extends State<ViewProperties> {
   int detailID;
 
   ViewPropertiesState(this.houseID, this.detailID);
+
+/*============= translate function ====================*/
+  Translations localized = Translations();
+  Future loadlang() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    localized.getlang = await prefs.get('lang');
+    if (localized.lang != null && localized.getlang != localized.lang) {
+      prefs.setString('lang', localized.lang);
+      setState(() {
+        localized.getlang = localized.lang;
+      });
+    } else {
+      if (localized.getlang == null) {
+        prefs.setString('lang', localized.lanngdefault);
+        setState(() {
+          localized.getlang = localized.lanngdefault;
+        });
+      }
+    }
+    String jsonContent =
+        await rootBundle.loadString("locale/${localized.getlang}.json");
+    setState(() {
+      localized.translate = json.decode(jsonContent);
+    });
+  }
 
   /// get List house
   var detailhouse;
@@ -66,18 +94,18 @@ class ViewPropertiesState extends State<ViewProperties> {
           return new AlertDialog(
             title: Center(
                 child: new Text(
-              'ອີນ​ເຕີ​ເນັດຜິດ​ພາດ',
+              localized.list(localized.translate, 'Error connection'),
             )),
             content: new SingleChildScrollView(
               child: new ListBody(
                 children: <Widget>[
                   Center(
                       child:
-                          new Text('ກວດເບີ່ງ​ການ​​ເຊື່ອມ​ຕໍ່​ເນັດ​ຂອງ​ທ່ານ')),
+                          new Text(localized.list(localized.translate, 'Please check your connection'))),
                   FlatButton(
                     child: Center(
                       child: new Text(
-                        '​ປິດ>>',
+                       localized.list(localized.translate, 'Close>>'),
                         style: TextStyle(color: Colors.red, fontSize: 20.0),
                       ),
                     ),
@@ -98,6 +126,7 @@ class ViewPropertiesState extends State<ViewProperties> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    loadlang();
     getDetailhouse();
   }
 
@@ -105,7 +134,7 @@ class ViewPropertiesState extends State<ViewProperties> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text("​ລາຍ​ລະ​ອຽດ​ເຮືອນ"),
+          title: Text(localized.list(localized.translate, 'House details')),
           actions: <Widget>[
             IconButton(
               color: Colors.white,
@@ -186,7 +215,7 @@ class ViewPropertiesState extends State<ViewProperties> {
                               builder: (context) => ViewMap(houseID)));
                     },
                     label: Text(
-                      'ເບີ່ງ​ແຜ່ນ​ທີ',
+                      localized.list(localized.translate, 'View Map'),
                       style: TextStyle(color: Colors.white),
                     ),
                     icon: Icon(
@@ -199,33 +228,33 @@ class ViewPropertiesState extends State<ViewProperties> {
                         Text('${detailhouse[0]['details']}'),
                         (detailhouse[0]['dstatus'] == '1')
                             ? Text(
-                                'ຫວ່າງ',
+                                localized.list(localized.translate, 'Invariable'),
                                 style: TextStyle(color: Colors.green),
                               )
                             : Text(
-                                '​ບໍ່ຫວ່າງ',
+                                localized.list(localized.translate, 'Not invariable'),
                                 style: TextStyle(color: Colors.red),
                               ),
                         Text(
-                            'ລາ​ຄາ:${detailhouse[0]['fee']} ${detailhouse[0]['currency_name']}/${(detailhouse[0]['per'] == "m") ? "ເດືອນ" : "ປີ"}'),
+                            localized.list(localized.translate, 'Price')+':${detailhouse[0]['fee']} ${detailhouse[0]['currency_name']}/${(detailhouse[0]['per'] == "m") ? localized.list(localized.translate, 'Month') : localized.list(localized.translate, 'Year')}'),
                         Divider(),
                         (detailhouse[0]['status'] == '0')
                             ? Text(
-                                '​ລໍ້​ຖ້າ​ອະ​ນຸ​ມັດ',
+                                localized.list(localized.translate, 'Status')+":"+localized.list(localized.translate, 'Pedding'),
                                 style: TextStyle(color: Colors.red),
                               )
                             : (detailhouse[0]['status'] == '1')
                                 ? Text(
-                                    '​ສະ​ຖາ​ນະ: ​ເປິດ​ເຜີຍ',
+                                    localized.list(localized.translate, 'Status')+":"+localized.list(localized.translate, 'Publish'),
                                     style: TextStyle(color: Colors.green),
                                   )
                                 : Text(
-                                    '​ສະ​ຖາ​ນະ: ໝົດ​ກຳ​ນົດ',
+                                    localized.list(localized.translate, 'Status')+":"+localized.list(localized.translate, 'Expired'),
                                     style: TextStyle(color: Colors.red),
                                   ),
-                        Text('ວັນ​ທີ່​ເລີ່ມ: ${detailhouse[0]['date_start']}'),
+                        Text(localized.list(localized.translate, 'Start date')+': ${detailhouse[0]['date_start']}'),
                         Text(
-                            'ວັນ​ທີ່​ສີີ້ນ​ສຸດ: ${detailhouse[0]['date_end']}'),
+                            localized.list(localized.translate, 'End date')+': ${detailhouse[0]['date_end']}'),
                       ],
                     ),
                   )
@@ -235,7 +264,7 @@ class ViewPropertiesState extends State<ViewProperties> {
                       Padding(
                         padding: const EdgeInsets.only(top: 250.0),
                         child:
-                            Center(child: Text('ເລື່ອນ​ຂື້ນ​ໂຫຼດ​ຂໍ້​ມູນ​ໃໝ່')),
+                            Center(child: Text(localized.list(localized.translate, 'Scroll up refresh'))),
                       )
                     ]),
                   ),

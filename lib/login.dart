@@ -13,18 +13,17 @@ class Login extends StatefulWidget {
 }
 
 class LoginState extends State<Login> {
+  /*============= translate function ====================*/
   Translations localized = Translations();
   Future loadlang() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     localized.getlang = await prefs.get('lang');
     if (localized.lang != null && localized.getlang != localized.lang) {
       prefs.setString('lang', localized.lang);
-      print('aaaaa');
       setState(() {
         localized.getlang = localized.lang;
       });
     } else {
-      print('ddddd');
       if (localized.getlang == null) {
         prefs.setString('lang', localized.lanngdefault);
         setState(() {
@@ -32,8 +31,6 @@ class LoginState extends State<Login> {
         });
       }
     }
-
-    print(localized.getlang);
     String jsonContent =
         await rootBundle.loadString("locale/${localized.getlang}.json");
     setState(() {
@@ -88,7 +85,7 @@ class LoginState extends State<Login> {
         _scoffoldKey.currentState.showSnackBar(new SnackBar(
           backgroundColor: Colors.red,
           content: new Row(
-            children: <Widget>[Text('ອິ​ເມວຫຼື​ລະ​ຫັດ​ຜ່ານ​ບໍ​ຖືກ​ຕ້ອງ​.....')],
+            children: <Widget>[Text(localized.list(localized.translate, 'Login Incorrect....'))],
           ),
         ));
       }
@@ -102,18 +99,18 @@ class LoginState extends State<Login> {
         barrierDismissible: false, // user must tap button!
         builder: (BuildContext context) {
           return new AlertDialog(
-            title: Center(child: new Text('ອີນ​ເຕີ​ເນັດຜິດ​ພາດ')),
+            title: Center(child: new Text(localized.list(localized.translate, 'Error Connection'))),
             content: new SingleChildScrollView(
               child: new ListBody(
                 children: <Widget>[
-                  Center(child: new Text('ກວດ​ເບີ່ງການ​ເຊື່ອມ​ຕໍ່​ເນັດ​ທ່ານ')),
+                  Center(child: new Text(localized.list(localized.translate, 'Please check your connection'))),
                 ],
               ),
             ),
             actions: <Widget>[
               new FlatButton(
                 child: new Text(
-                  'ປິດ>>',
+                  localized.list(localized.translate, 'Close>>'),
                   style: TextStyle(color: Colors.red, fontSize: 20.0),
                 ),
                 onPressed: () {
@@ -215,6 +212,7 @@ class LoginState extends State<Login> {
         appBar: AppBar(
           title: Row(
             children: <Widget>[
+              Icon(Icons.language),
               DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   value: localized.lang,
@@ -226,7 +224,7 @@ class LoginState extends State<Login> {
 
                     loadlang();
                   },
-                  items: ['la', 'en'].map((String value) {
+                  items: localized.listlang.map((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
                       child: Text(value),

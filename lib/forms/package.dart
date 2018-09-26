@@ -1,9 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:erent/forms/viewproperties.dart';
+import 'package:erent/translations.dart';
 import 'package:erent/url_api.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Package extends StatefulWidget {
   var houseID;
@@ -24,6 +28,31 @@ class PackageState extends State<Package> {
 
   final dateFormat = DateFormat("EEEE, MMMM d, yyyy 'at' h:mma");
   List<RadioModel> sampleData = new List<RadioModel>();
+
+/*============= translate function ====================*/
+  Translations localized = Translations();
+  Future loadlang() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    localized.getlang = await prefs.get('lang');
+    if (localized.lang != null && localized.getlang != localized.lang) {
+      prefs.setString('lang', localized.lang);
+      setState(() {
+        localized.getlang = localized.lang;
+      });
+    } else {
+      if (localized.getlang == null) {
+        prefs.setString('lang', localized.lanngdefault);
+        setState(() {
+          localized.getlang = localized.lanngdefault;
+        });
+      }
+    }
+    String jsonContent =
+        await rootBundle.loadString("locale/${localized.getlang}.json");
+    setState(() {
+      localized.translate = json.decode(jsonContent);
+    });
+  }
 
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
   Future<Null> getListPackages() async {
@@ -55,18 +84,18 @@ class PackageState extends State<Package> {
           return new AlertDialog(
             title: Center(
                 child: new Text(
-              'ອີນ​ເຕີ​ເນັດຜິດ​ພາດ',
+              localized.list(localized.translate, 'Error connection'),
             )),
             content: new SingleChildScrollView(
               child: new ListBody(
                 children: <Widget>[
                   Center(
                       child:
-                          new Text('ກວດເບີ່ງ​ການ​​ເຊື່ອມ​ຕໍ່​ເນັດ​ຂອງ​ທ່ານ')),
+                          new Text(localized.list(localized.translate, 'Please check your connection'))),
                   FlatButton(
                     child: Center(
                       child: new Text(
-                        '​ປິດ>>',
+                        localized.list(localized.translate, 'Close>>'),
                         style: TextStyle(color: Colors.red, fontSize: 20.0),
                       ),
                     ),
@@ -117,7 +146,7 @@ class PackageState extends State<Package> {
   String _validated() {
     if (packageID == null) {
       setState(() {
-        validatepackage = "ຕ້ອງເລືອກ​ແພັກ​ເກັດ";
+        validatepackage = localized.list(localized.translate, 'Must be choose package');
       });
     } else {
       setState(() {
@@ -126,7 +155,7 @@ class PackageState extends State<Package> {
     }
     if (datestart == null) {
       setState(() {
-        validateDate = "ຕ້ອງເລືອກ​ວັນ​ທີ​ເປິດ​ເຜີຍ";
+        validateDate = localized.list(localized.translate, 'Must be choose date publish');
       });
     } else {
       setState(() {
@@ -179,6 +208,7 @@ class PackageState extends State<Package> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    loadlang();
     getListPackages();
   }
 
@@ -186,7 +216,7 @@ class PackageState extends State<Package> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('​ຊື້​ແພ​ັກ​ເ​ກັດ'),
+        title: Text(localized.list(localized.translate, 'Buy package')),
       ),
       body: Form(
         key: this._formKey,
@@ -201,7 +231,7 @@ class PackageState extends State<Package> {
                     // validator: widget.validator,
                     controller: _controller,
                     decoration: InputDecoration(
-                      labelText: 'ເລືອກວັນ​ທີ​ເປິດ​ເຜີຍ',
+                      labelText: localized.list(localized.translate, 'Choose date publish'),
                       suffixIcon: Icon(Icons.date_range),
                     ),
                   ),
@@ -220,7 +250,7 @@ class PackageState extends State<Package> {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Row(
-                children: <Widget>[Text('​ເລືອກ​ແພັກ​ເກັດ​ຕ້ອງ​ການ​ຊື້')],
+                children: <Widget>[Text(localized.list(localized.translate, 'Choose package you want to buy'))],
               ),
             ),
             (isLoading)
@@ -265,7 +295,7 @@ class PackageState extends State<Package> {
                           },
                           color: Colors.red,
                           child: Text(
-                            'ຊື້',
+                            localized.list(localized.translate, 'Buy'),
                             style:
                                 TextStyle(color: Colors.white, fontSize: 20.0),
                           ),

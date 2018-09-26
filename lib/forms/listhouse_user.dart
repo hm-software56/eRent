@@ -6,6 +6,8 @@ import 'package:erent/comment.dart';
 import 'package:erent/forms/properties_form.dart';
 import 'package:erent/forms/properties_formedit.dart';
 import 'package:erent/forms/viewproperties.dart';
+import 'package:erent/translations.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:erent/url_api.dart';
@@ -22,6 +24,31 @@ class ListhouseUserState extends State<ListhouseUser> {
   var listhouse;
   var userID;
   
+  /*============= translate function ====================*/
+  Translations localized = Translations();
+  Future loadlang() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    localized.getlang = await prefs.get('lang');
+    if (localized.lang != null && localized.getlang != localized.lang) {
+      prefs.setString('lang', localized.lang);
+      setState(() {
+        localized.getlang = localized.lang;
+      });
+    } else {
+      if (localized.getlang == null) {
+        prefs.setString('lang', localized.lanngdefault);
+        setState(() {
+          localized.getlang = localized.lanngdefault;
+        });
+      }
+    }
+    String jsonContent =
+        await rootBundle.loadString("locale/${localized.getlang}.json");
+    setState(() {
+      localized.translate = json.decode(jsonContent);
+    });
+  }
+
 
   final GlobalKey<ScaffoldState> _scoffoldKey = new GlobalKey<ScaffoldState>();
   Future<Null> getlisthouses() async {
@@ -49,18 +76,18 @@ class ListhouseUserState extends State<ListhouseUser> {
           return new AlertDialog(
             title: Center(
                 child: new Text(
-              'ອີນ​ເຕີ​ເນັດຜິດ​ພາດ',
+                  localized.list(localized.translate, 'Error connection'),
             )),
             content: new SingleChildScrollView(
               child: new ListBody(
                 children: <Widget>[
                   Center(
                       child:
-                          new Text('ກວດເບີ່ງ​ການ​​ເຊື່ອມ​ຕໍ່​ເນັດ​ຂອງ​ທ່ານ')),
+                          new Text(localized.list(localized.translate, 'Please check your connection'))),
                   FlatButton(
                     child: Center(
                       child: new Text(
-                        '​ປິດ>>',
+                        localized.list(localized.translate, 'Close>>'),
                         style: TextStyle(color: Colors.red, fontSize: 20.0),
                       ),
                     ),
@@ -85,7 +112,9 @@ class ListhouseUserState extends State<ListhouseUser> {
     _scoffoldKey.currentState.showSnackBar(new SnackBar(
       backgroundColor: Colors.red,
       content: new Row(
-        children: <Widget>[Text('ລາຍ​ກາ​ນ​ຖືກ​ລືບ​ແລ້ວ.....')],
+        children: <Widget>[
+          Text(localized.list(localized.translate, 'Item have been deleted'))
+          ],
       ),
     ));
     setState(() {
@@ -97,6 +126,7 @@ class ListhouseUserState extends State<ListhouseUser> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    loadlang();
     getlisthouses();
   }
 
@@ -105,7 +135,7 @@ class ListhouseUserState extends State<ListhouseUser> {
     return Scaffold(
       key: _scoffoldKey,
       appBar: AppBar(
-        title: Text('ໂຄ​ສະ​ນາ​ເຮືອ​ນ'),
+        title: Text(localized.list(localized.translate, 'Advertise house')),
         actions: <Widget>[
           IconButton(
             color: Colors.white,
@@ -126,7 +156,7 @@ class ListhouseUserState extends State<ListhouseUser> {
               onRefresh: getlisthouses,
               child: ListView.builder(
                 itemBuilder: (context, int index) {
-                  var per = (listhouse[index]['per'] == "m") ? "ເດືອນ" : "ປີ";
+                  var per = (listhouse[index]['per'] == "m") ? localized.list(localized.translate, 'Month') :localized.list(localized.translate, 'Year');
                  // int a=listhouse[index]['fee'];
                   //final money = Money(a, Currency('USD'));
                   return Column(
@@ -162,14 +192,14 @@ class ListhouseUserState extends State<ListhouseUser> {
                               ),
                               (listhouse[index]['dstatus'] == '1')
                                   ? Text(
-                                      'ຫວ່າງ',
+                                      localized.list(localized.translate, 'Invariable'),
                                       style: TextStyle(color: Colors.green),
                                     )
                                   : Text(
-                                      '​ບໍ່ຫວ່າງ',
+                                      localized.list(localized.translate, 'Not invariable'),
                                       style: TextStyle(color: Colors.red),
                                     ),
-                              Text('ລາ​ຄາ:${listhouse[index]['fee']} ${listhouse[index]['currency_name']}/$per'),
+                              Text(localized.list(localized.translate, 'Price')+':${listhouse[index]['fee']} ${listhouse[index]['currency_name']}/$per'),
                             ]),
                         trailing: Column(children: <Widget>[
                           IconButton(
@@ -213,7 +243,7 @@ class ListhouseUserState extends State<ListhouseUser> {
                                   ),
                                 ),
                                 Text(
-                                    'Like(${listhouse[index]['likeProperties'].length})',
+                                    localized.list(localized.translate, 'Like')+'(${listhouse[index]['likeProperties'].length})',
                                     style: TextStyle(fontSize: 10.0))
                               ],
                             ),
@@ -237,7 +267,7 @@ class ListhouseUserState extends State<ListhouseUser> {
                                   ),
                                 ),
                                 Text(
-                                  'Comment(${listhouse[index]['comments'].length})',
+                                  localized.list(localized.translate, 'Comment')+'(${listhouse[index]['comments'].length})',
                                   style: TextStyle(fontSize: 10.0),
                                 )
                               ],
@@ -254,7 +284,7 @@ class ListhouseUserState extends State<ListhouseUser> {
                                   ),
                                 ),
                                 Text(
-                                  'ນັດເບີ່ງ​ເຮືອນ',
+                                 localized.list(localized.translate, 'Time table'),
                                   style: TextStyle(fontSize: 10.0),
                                 )
                               ],
@@ -262,7 +292,7 @@ class ListhouseUserState extends State<ListhouseUser> {
                           ),
                         ],
                       ),
-                      Divider()
+                      Divider() 
                     ],
                   );
                 },

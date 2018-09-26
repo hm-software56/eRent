@@ -3,10 +3,12 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:erent/comment.dart';
+import 'package:erent/translations.dart';
 import 'package:erent/url_api.dart';
 import 'package:erent/view_map.dart';
 import 'package:erent/viewphoto.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -25,6 +27,31 @@ class ViewHouseState extends State<ViewHouse> {
   var detailID;
 
   ViewHouseState(this.houseID, this.detailID);
+
+/*============= translate function ====================*/
+  Translations localized = Translations();
+  Future loadlang() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    localized.getlang = await prefs.get('lang');
+    if (localized.lang != null && localized.getlang != localized.lang) {
+      prefs.setString('lang', localized.lang);
+      setState(() {
+        localized.getlang = localized.lang;
+      });
+    } else {
+      if (localized.getlang == null) {
+        prefs.setString('lang', localized.lanngdefault);
+        setState(() {
+          localized.getlang = localized.lanngdefault;
+        });
+      }
+    }
+    String jsonContent =
+        await rootBundle.loadString("locale/${localized.getlang}.json");
+    setState(() {
+      localized.translate = json.decode(jsonContent);
+    });
+  }
 
   /// get List house
   var detailhouse;
@@ -105,11 +132,11 @@ class ViewHouseState extends State<ViewHouse> {
                 children: <Widget>[
                   Center(
                       child:
-                          new Text('ກວດເບີ່ງ​ການ​​ເຊື່ອມ​ຕໍ່​ເນັດ​ຂອງ​ທ່ານ')),
+                          new Text(localized.list(localized.translate, 'Please check your connection'))),
                   FlatButton(
                     child: Center(
                       child: new Text(
-                        '​ປິດ>>',
+                        localized.list(localized.translate, 'Close>>'),
                         style: TextStyle(color: Colors.red, fontSize: 20.0),
                       ),
                     ),
@@ -182,13 +209,14 @@ class ViewHouseState extends State<ViewHouse> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    loadlang();
     getDetailhouse();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("​ລາຍ​ລະ​ອຽດ​ເຮືອນ")),
+      appBar: AppBar(title: Text(localized.list(localized.translate, 'House details'))),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : Padding(
@@ -252,7 +280,7 @@ class ViewHouseState extends State<ViewHouse> {
                               builder: (context) => ViewMap(houseID)));
                     },
                     label: Text(
-                      'ເບີ່ງ​ແຜ່ນ​ທີ',
+                      localized.list(localized.translate, 'View Map'),
                       style: TextStyle(color: Colors.white),
                     ),
                     icon: Icon(
@@ -265,15 +293,15 @@ class ViewHouseState extends State<ViewHouse> {
                   Text('${detailhouse[0]['details']}'),
                   (detailhouse[0]['dstatus'] == '1')
                       ? Text(
-                          'ຫວ່າງ',
+                          localized.list(localized.translate, 'Invariable'),
                           style: TextStyle(color: Colors.green),
                         )
                       : Text(
-                          '​ບໍ່ຫວ່າງ',
+                          localized.list(localized.translate, 'Not invariable'),
                           style: TextStyle(color: Colors.red),
                         ),
                   Text(
-                      'ລາ​ຄາ:${detailhouse[0]['fee']} ${detailhouse[0]['currency_name']}/${(detailhouse[0]['per'] == "m") ? "ເດືອນ" : "ປີ"}'),
+                      localized.list(localized.translate, 'Price')+':${detailhouse[0]['fee']} ${detailhouse[0]['currency_name']}/${(detailhouse[0]['per'] == "m") ? localized.list(localized.translate, 'Month') : localized.list(localized.translate, 'Year')}'),
                   Divider(),
                   Row(
                     children: <Widget>[
@@ -293,7 +321,7 @@ class ViewHouseState extends State<ViewHouse> {
                               ),
                             ),
                             Text(
-                              'Like(${nbcount})',
+                              localized.list(localized.translate, 'Like')+'(${nbcount})',
                               style: TextStyle(fontSize: 10.0),
                             ),
                           ],
@@ -311,7 +339,7 @@ class ViewHouseState extends State<ViewHouse> {
                                         maxLines: 2,
                                         keyboardType: TextInputType.multiline,
                                         decoration: new InputDecoration(
-                                            labelText: "ປ້ອນ​ຄຳ​ເຫັນ"),
+                                            labelText: localized.list(localized.translate, 'Comment')),
                                         onChanged: (String text) {
                                           commentInput = text;
                                           setState(() {
@@ -358,7 +386,7 @@ class ViewHouseState extends State<ViewHouse> {
                               ),
                             ),
                             Text(
-                              'ນັດເບີ່ງ​ເຮືອນ',
+                              localized.list(localized.translate, 'Time table'),
                               style: TextStyle(fontSize: 10.0),
                             )
                           ],

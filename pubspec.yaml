@@ -54,8 +54,8 @@ flutter:
     - assets/img/user.jpg
     - assets/img/logo.png
     - assets/img/bg.jpg
-    - locale/en.json
-    - locale/la.json
+    - locale/English.json
+    - locale/Lao.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.io/assets-and-images/#resolution-aware.

@@ -2,8 +2,8 @@ class Translations {
   Map translate = {'daxiong': 'daxiong'};
   String getlang;
   String lang;
-  String lanngdefault = "en";
-  List<String> listlang= ["1","2"];
+  String lanngdefault = "English";
+  List<String> listlang= ["English","Lao"];
   list(list_map, key) {
     if (list_map[key] == null) {
       return key;

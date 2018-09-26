@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:erent/login.dart';
+import 'package:erent/translations.dart';
 import 'package:erent/url_api.dart';
 import 'package:erent/viewhouse.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -23,6 +25,31 @@ class HomeState extends State<Home> {
   var getfirstname;
   var photo_profile;
   var photo_bg;
+
+/*============= translate function ====================*/
+  Translations localized = Translations();
+  Future loadlang() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    localized.getlang = await prefs.get('lang');
+    if (localized.lang != null && localized.getlang != localized.lang) {
+      prefs.setString('lang', localized.lang);
+      setState(() {
+        localized.getlang = localized.lang;
+      });
+    } else {
+      if (localized.getlang == null) {
+        prefs.setString('lang', localized.lanngdefault);
+        setState(() {
+          localized.getlang = localized.lanngdefault;
+        });
+      }
+    }
+    String jsonContent =
+        await rootBundle.loadString("locale/${localized.getlang}.json");
+    setState(() {
+      localized.translate = json.decode(jsonContent);
+    });
+  }
 
 /* ====================== Onsigal Push notifycation ============================= */
   _initOneSignal() async {
@@ -74,8 +101,10 @@ class HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
+    loadlang();
     getToken();
     getlisthouses();
+
   }
 
   Future<Null> logOut() async {
@@ -127,11 +156,11 @@ class HomeState extends State<Home> {
                 children: <Widget>[
                   Center(
                       child:
-                          new Text('ກວດເບີ່ງ​ການ​​ເຊື່ອມ​ຕໍ່​ເນັດ​ຂອງ​ທ່ານ')),
+                          new Text(localized.list(localized.translate, 'Please check your connection'))),
                   FlatButton(
                     child: Center(
                       child: new Text(
-                        '​ປິດ>>',
+                       localized.list(localized.translate, 'Close>>'),
                         style: TextStyle(color: Colors.red, fontSize: 20.0),
                       ),
                     ),
@@ -149,7 +178,7 @@ class HomeState extends State<Home> {
   }
 
 //============== Search Appbar ================
-  Widget appBarTitle = new Text("ໜ້າ​ຫຼັກ");
+  Widget appBarTitle;
   Icon actionIcon = new Icon(Icons.search);
   final TextEditingController _searchQuery = new TextEditingController();
   var listsearchhouse;
@@ -187,7 +216,7 @@ class HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     Widget appBar = AppBar(
-      title: appBarTitle,
+      title: appBarTitle!=null?appBarTitle:Text(localized.list(localized.translate, 'Home')),
       actions: <Widget>[
         /*  ===============  Search ===============*/
         IconButton(
@@ -207,7 +236,7 @@ class HomeState extends State<Home> {
                   decoration: new InputDecoration(
                       fillColor: Colors.greenAccent,
                       prefixIcon: new Icon(Icons.search, color: Colors.white),
-                      hintText: "​ຄົ້ນ​ຫາ...",
+                      hintText: localized.list(localized.translate, 'Search'),
                       hintStyle: new TextStyle(color: Colors.white)),
                 );
                 _SearchListState();
@@ -216,7 +245,7 @@ class HomeState extends State<Home> {
                 ischeaching = false;
                 _searchQuery.clear();
                 this.actionIcon = new Icon(Icons.search);
-                this.appBarTitle = new Text("ໜ້າ​ຫຼັກ");
+                this.appBarTitle = Text(localized.list(localized.translate, 'Home'));
               }
             });
           },
@@ -279,7 +308,7 @@ class HomeState extends State<Home> {
           sourcePath: imageFile.path,
           ratioX: 1.0,
           ratioY: 1.0,
-          toolbarTitle: 'ຕັດ​ຮູບ​ພາບ',
+          toolbarTitle:localized.list(localized.translate, 'Crop photo'),
           toolbarColor: Colors.red);
       if (croppedFile != null) {
         imageFile = croppedFile;
@@ -329,7 +358,7 @@ class HomeState extends State<Home> {
           sourcePath: imageBgFile.path,
           ratioX: 1.8,
           ratioY: 1.0,
-          toolbarTitle: 'ຕັດ​ຮູບ​ພາບ',
+          toolbarTitle:localized.list(localized.translate, 'Crop photo'),
           toolbarColor: Colors.red);
       if (croppedFile != null) {
         imageBgFile = croppedFile; 
@@ -377,13 +406,13 @@ class HomeState extends State<Home> {
                         child: Column(
                           children: <Widget>[
                             Text(
-                              'ປ່ຽນ​ຮູບ​ໂປ​ຣ​ໄຟພື້ນຫຼັງ',
+                              localized.list(localized.translate, 'Change photo profile backgroud'),
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                             Row(
                               children: <Widget>[
                                 OutlineButton.icon(
-                                  label: Text('GALLERY',
+                                  label: Text(localized.list(localized.translate, 'GALLERY'),
                                       style: TextStyle(
                                           fontSize: 10.0, color: Colors.black)),
                                   icon: Icon(
@@ -399,7 +428,7 @@ class HomeState extends State<Home> {
                                 Padding(
                                   padding: EdgeInsets.only(left: 10.0),
                                   child: OutlineButton.icon(
-                                    label: Text('CAMERA',
+                                    label: Text(localized.list(localized.translate, 'CAMERA'),
                                         style: TextStyle(fontSize: 10.0)),
                                     icon: Icon(
                                       Icons.camera,
@@ -438,13 +467,13 @@ class HomeState extends State<Home> {
                         child: Column(
                           children: <Widget>[
                             Text(
-                              'ປ່ຽນ​ຮູບ​ໂປ​ຣ​ໄຟ',
+                              localized.list(localized.translate, 'Change photo profile'),
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                             Row(
                               children: <Widget>[
                                 OutlineButton.icon(
-                                  label: Text('GALLERY',
+                                  label: Text(localized.list(localized.translate, 'GALLERY'),
                                       style: TextStyle(
                                           fontSize: 10.0, color: Colors.black)),
                                   icon: Icon(
@@ -460,7 +489,7 @@ class HomeState extends State<Home> {
                                 Padding(
                                   padding: EdgeInsets.only(left: 10.0),
                                   child: OutlineButton.icon(
-                                    label: Text('CAMERA',
+                                    label: Text(localized.list(localized.translate, 'CAMERA'),
                                         style: TextStyle(fontSize: 10.0)),
                                     icon: Icon(
                                       Icons.camera,
@@ -503,11 +532,11 @@ class HomeState extends State<Home> {
               color: Colors.blue,
             ),
             title: Text(
-              '​ໂຄ​ສະ​ນາ​ເຮືອ​ນ',
+              localized.list(localized.translate, 'Advertise house'),
               style: TextStyle(fontSize: 20.0),
             ),
             subtitle: Text(
-              'ຈັດ​ການ​ໂຄ​ສະ​ນາເຮຶອນຂອງ​ຕົ້ນ​ເອງ',
+              localized.list(localized.translate, 'Manage Advertise house your owner'),
               style: TextStyle(fontSize: 12.0),
             ),
             trailing: Icon(Icons.keyboard_arrow_right),
@@ -521,11 +550,11 @@ class HomeState extends State<Home> {
               color: Colors.blue,
             ),
             title: Text(
-              'ໂປ​ຣ​ໄຟ',
+              localized.list(localized.translate, 'Profile'),
               style: TextStyle(fontSize: 20.0),
             ),
             subtitle: Text(
-              'ຈັດ​ການໂປ​ຣ​ໄຟຂອງ​ຕົ້ນ​ເອງ',
+              localized.list(localized.translate, 'Mange your profile'),
               style: TextStyle(fontSize: 12.0),
             ),
             trailing: Icon(Icons.keyboard_arrow_right),
@@ -539,11 +568,11 @@ class HomeState extends State<Home> {
               color: Colors.blue,
             ),
             title: Text(
-              'ຜົນ​ທີ​ໄດ້​ຮັບ',
+              localized.list(localized.translate, 'The result received'),
               style: TextStyle(fontSize: 20.0),
             ),
             subtitle: Text(
-              '​ອະ​ທີ​ບາຍ​ຜົນ​ທີ​ໄດ້​ຮັບ',
+              localized.list(localized.translate, 'How to get results'),
               style: TextStyle(fontSize: 12.0),
             ),
             trailing: Icon(Icons.keyboard_arrow_right),
@@ -555,11 +584,11 @@ class HomeState extends State<Home> {
               color: Colors.blue,
             ),
             title: Text(
-              'ຕັ້​ງ​ຄ່າ',
+              localized.list(localized.translate, 'Setting'),
               style: TextStyle(fontSize: 20.0),
             ),
             subtitle: Text(
-              '​ຈັດ​ການ​ການ​ຕັ້ງ​ຄ່າ​ຕ່າງ​',
+              localized.list(localized.translate, 'Manage setting'),
               style: TextStyle(fontSize: 12.0),
             ),
             trailing: Icon(Icons.keyboard_arrow_right),
@@ -572,7 +601,7 @@ class HomeState extends State<Home> {
               color: Colors.red,
             ),
             title: Text(
-              'ອອກ​ຈາກ​ລະ​ບົບ',
+              localized.list(localized.translate, 'Logout'),
               style: TextStyle(
                 fontSize: 20.0,
               ),
@@ -593,7 +622,7 @@ class HomeState extends State<Home> {
               onRefresh: getlisthouses,
               child: ListView.builder(
                 itemBuilder: (context, int index) {
-                  var per = (listhouses[index]['per'] == "m") ? "ເດືອນ" : "ປີ";
+                  var per = (listhouses[index]['per'] == "m") ? localized.list(localized.translate, 'Month') : localized.list(localized.translate, 'Year');
                   return Column(
                     children: <Widget>[
                       ListTile(
@@ -627,18 +656,18 @@ class HomeState extends State<Home> {
                               ),
                               (listhouses[index]['dstatus'] == '1')
                                   ? Text(
-                                      'ຫວ່າງ',
+                                    localized.list(localized.translate, 'Invariable'),
                                       style: TextStyle(color: Colors.green),
                                     )
                                   : Text(
-                                      '​ບໍ່ຫວ່າງ',
+                                      localized.list(localized.translate, 'Not invariable'),
                                       style: TextStyle(color: Colors.red),
                                     ),
-                              Text('ລາ​ຄາ:${listhouses[index]['fee']} ${listhouses[index]['currency_name']}/$per')
+                              Text(localized.list(localized.translate, 'Price')+':${listhouses[index]['fee']} ${listhouses[index]['currency_name']}/$per')
                             ]),
                         trailing: Icon(Icons.keyboard_arrow_right),
                       ),
-                      Divider()
+                      Divider() 
                     ],
                   );
                 },
