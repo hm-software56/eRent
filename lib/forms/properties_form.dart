@@ -5,6 +5,8 @@ import 'dart:io';
 //import 'package:async/async.dart';
 import 'package:erent/forms/getmap.dart';
 import 'package:erent/forms/viewproperties.dart';
+import 'package:erent/models/model_properties.dart';
+import 'package:erent/translations.dart';
 import 'package:erent/url_api.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -19,32 +21,47 @@ class PropertiesForm extends StatefulWidget {
 }
 
 class PropertiesFormState extends State<PropertiesForm> {
+  Translations localized = Translations();
   bool isLoading = true;
   bool isloadimg = false;
   bool isloadsave = false;
   List listpropertytype = List();
   List listcurrency = List();
+  Map mapprovice = Map();
+  List listprovice = List();
+  Map mapdistrict = Map();
+  List listdistrict = [''];
   String validatetype = '';
   String validateper = '';
   String validateimg = '';
   String validatecurrency = '';
+  String validateprovince = '';
 
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
-  _PropertiesForm _data = _PropertiesForm();
+  ModelProperties _data = ModelProperties();
+
+  /*================== get list property type and currency ===============*/
   Future<Null> getListType() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var langcode = await prefs.get('langcode');
     Dio dio = Dio();
-    final response =
-        await dio.get('${UrlApi().url}/index.php/api/listpropertiestype');
+    final response = await dio.get(
+        '${UrlApi().url}/index.php/api/listpropertiestype',
+        data: {'lang': langcode});
 
-    final responseCurrency =
-        await dio.get('${UrlApi().url}/index.php/api/listcurrency');
+    final responseCurrency = await dio.get(
+        '${UrlApi().url}/index.php/api/listcurrency',
+        data: {'lang': langcode});
 
-    if (response.statusCode == 200 && responseCurrency.statusCode == 200) {
+    final responseProvince = await dio.get(
+        '${UrlApi().url}/index.php/api/listprovince',
+        data: {'lang': langcode});
+
+    if (response.statusCode == 200 &&
+        responseCurrency.statusCode == 200 &&
+        responseProvince.statusCode == 200) {
       var jsonResponse = response.data;
       var jsoncurrency = responseCurrency.data;
-
-      // print(jsonResponse);
-      print(responseCurrency);
 
       List listtype = List();
       for (var item in jsonResponse['rows']) {
@@ -55,10 +72,18 @@ class PropertiesFormState extends State<PropertiesForm> {
       for (var item in jsoncurrency['rows']) {
         currency.add('${item['name']}');
       }
+
+      List province = List();
+      for (var item in responseProvince.data['rows']) {
+        province.add('${item['name']}');
+      }
+
       isLoading = false;
       setState(() {
         listpropertytype = listtype;
         listcurrency = currency;
+        listprovice = province;
+        mapprovice = responseProvince.data;
       });
     } else {
       setState(() {
@@ -72,18 +97,18 @@ class PropertiesFormState extends State<PropertiesForm> {
           return new AlertDialog(
             title: Center(
                 child: new Text(
-              'ອີນ​ເຕີ​ເນັດຜິດ​ພາດ',
+              localized.list(localized.translate, 'Error connection'),
             )),
             content: new SingleChildScrollView(
               child: new ListBody(
                 children: <Widget>[
                   Center(
-                      child:
-                          new Text('ກວດເບີ່ງ​ການ​​ເຊື່ອມ​ຕໍ່​ເນັດ​ຂອງ​ທ່ານ')),
+                      child: new Text(localized.list(localized.translate,
+                          'Please check your connection'))),
                   FlatButton(
                     child: Center(
                       child: new Text(
-                        '​ປິດ>>',
+                        localized.list(localized.translate, 'Close>>'),
                         style: TextStyle(color: Colors.red, fontSize: 20.0),
                       ),
                     ),
@@ -97,6 +122,41 @@ class PropertiesFormState extends State<PropertiesForm> {
           );
         },
       );
+    }
+  }
+
+/*================= list district by province id  ===========================*/
+  Future selectdistrictbyprovice(var province) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var langcode = await prefs.get('langcode');
+    Dio dio = Dio();
+    for (var item in mapprovice['rows']) {
+      if (item['name'] == '${province}') {
+        setState(() {
+          _data.province_id = item['id'];
+        });
+      }
+    }
+
+    final response = await dio.get(
+        '${UrlApi().url}/index.php/api/listdistrictbyprovince',
+        data: {'lang': langcode, 'province_id': _data.province_id});
+    if (response.statusCode == 200) {
+      List district = List();
+      if (response.data['rows'].length > 0) {
+        for (var item in response.data['rows']) {
+          district.add('${item['name']}');
+        }
+        setState(() {
+          listdistrict = district;
+          mapdistrict = response.data['rows'];
+        });
+      } else {
+        setState(() {
+          listdistrict = [''];
+          mapdistrict = Map();
+        });
+      }
     }
   }
 
@@ -116,7 +176,7 @@ class PropertiesFormState extends State<PropertiesForm> {
           sourcePath: imageFile.path,
           ratioX: 1.5,
           ratioY: 1.0,
-          toolbarTitle: 'ຕັດ​ຮູບ​ພາບ',
+          toolbarTitle: localized.list(localized.translate, 'Crop photo'),
           toolbarColor: Colors.red);
       if (croppedFile != null) {
         imageFile = croppedFile;
@@ -161,6 +221,7 @@ class PropertiesFormState extends State<PropertiesForm> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    localized.loadlang();
     getListType();
   }
 
@@ -169,7 +230,27 @@ class PropertiesFormState extends State<PropertiesForm> {
     try {
       Validate.notEmpty(value);
     } catch (e) {
-      return 'ປ້ອນ​ລາຍ​ລະ​ອຽດ​ເຮືອນ';
+      return localized.list(localized.translate, 'Must be enter details house');
+    }
+    return null;
+  }
+
+  String _validatBed(String value) {
+    try {
+      Validate.notEmpty(value);
+    } catch (e) {
+      return localized.list(
+          localized.translate, 'Must be enter number of bedroom');
+    }
+    return null;
+  }
+
+  String _validatBath(String value) {
+    try {
+      Validate.notEmpty(value);
+    } catch (e) {
+      return localized.list(
+          localized.translate, 'Must be enter number of bathroom');
     }
     return null;
   }
@@ -178,7 +259,7 @@ class PropertiesFormState extends State<PropertiesForm> {
     try {
       Validate.notEmpty(value);
     } catch (e) {
-      return '​ປ້ອນລາ​ຄາ';
+      return localized.list(localized.translate, 'Must be enter price');
     }
     return null;
   }
@@ -186,7 +267,8 @@ class PropertiesFormState extends State<PropertiesForm> {
   String _validatedropdown() {
     if (_data.propertye == null) {
       setState(() {
-        validatetype = "ຕ້ອງເລືອກ​ປະ​ເພ​ດ​ເຮືອນ";
+        validatetype =
+            localized.list(localized.translate, 'Must be choose type house');
       });
     } else {
       setState(() {
@@ -194,9 +276,21 @@ class PropertiesFormState extends State<PropertiesForm> {
       });
     }
 
+    if (_data.province == null) {
+      setState(() {
+        validateprovince =
+            localized.list(localized.translate, 'Must be choose province');
+      });
+    } else {
+      setState(() {
+        validateprovince = '';
+      });
+    }
+
     if (_data.currency == null) {
       setState(() {
-        validatecurrency = "ຕ້ອງເລືອກ​ສະ​ກູນ​ເງີນ";
+        validatecurrency =
+            localized.list(localized.translate, 'Must be choose currency');
       });
     } else {
       setState(() {
@@ -206,7 +300,8 @@ class PropertiesFormState extends State<PropertiesForm> {
 
     if (_data.per == null) {
       setState(() {
-        validateper = "ຕ້ອງເລືອກ​ເດືອນ​ຫຼື​ປີ​ຕໍ່​ລາ​ຄາ​";
+        validateper = localized.list(
+            localized.translate, 'Must be choose a month or year per price');
       });
     } else {
       setState(() {
@@ -216,7 +311,8 @@ class PropertiesFormState extends State<PropertiesForm> {
 
     if (_image == null) {
       setState(() {
-        validateimg = "ຕ້ອງເລືອກຮູບ​ພາບ​​";
+        validateimg =
+            localized.list(localized.translate, 'Must be choose photo');
       });
     } else {
       setState(() {
@@ -270,8 +366,9 @@ class PropertiesFormState extends State<PropertiesForm> {
         Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-                builder: (context) =>
-                    ViewProperties(int.parse(response.data['id']), int.parse(response.data['did']))));
+                builder: (context) => ViewProperties(
+                    int.parse(response.data['id']),
+                    int.parse(response.data['did']))));
       } else {
         print('Error Post Data');
       }
@@ -284,7 +381,7 @@ class PropertiesFormState extends State<PropertiesForm> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('ປ້ອນ​ເຮືອນ​ໃໝ່'),
+        title: Text(localized.list(localized.translate, 'Enter new house')),
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
@@ -296,8 +393,66 @@ class PropertiesFormState extends State<PropertiesForm> {
                 child: ListView(
                   children: <Widget>[
                     InputDecorator(
-                      decoration: const InputDecoration(
-                        labelText: 'ເລືອກ​ປະ​ເພດ​ເຮືອນ',
+                      decoration: InputDecoration(
+                        labelText: localized.list(
+                            localized.translate, 'Choose province'),
+                      ),
+                      isEmpty: _data.propertye == null,
+                      child: new DropdownButtonHideUnderline(
+                        child: new DropdownButton<String>(
+                          value: _data.province,
+                          isDense: true,
+                          onChanged: (String newValue) {
+                            setState(() {
+                              _data.province = newValue;
+                            });
+                            selectdistrictbyprovice(_data.province);
+                          },
+                          items: listprovice.map((value) {
+                            return new DropdownMenuItem<String>(
+                              value: value,
+                              child: new Text(value),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '${validateprovince}',
+                      style: TextStyle(color: Colors.red, fontSize: 12.0),
+                    ),
+                    InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: localized.list(
+                            localized.translate, 'Choose district'),
+                      ),
+                      isEmpty: _data.district == null,
+                      child: new DropdownButtonHideUnderline(
+                        child: new DropdownButton<String>(
+                          value: _data.district,
+                          isDense: true,
+                          onChanged: (String newValue) {
+                            setState(() {
+                              _data.district = newValue;
+                            });
+                          },
+                          items: listdistrict.map((value) {
+                            return new DropdownMenuItem<String>(
+                              value: value,
+                              child: new Text(value),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '${validateprovince}',
+                      style: TextStyle(color: Colors.red, fontSize: 12.0),
+                    ),
+                    InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: localized.list(
+                            localized.translate, 'Choose type house'),
                       ),
                       isEmpty: _data.propertye == null,
                       child: new DropdownButtonHideUnderline(
@@ -323,28 +478,63 @@ class PropertiesFormState extends State<PropertiesForm> {
                       style: TextStyle(color: Colors.red, fontSize: 12.0),
                     ),
                     TextFormField(
-                      maxLines: 8,
+                      maxLines: 4,
                       keyboardType: TextInputType.multiline,
                       decoration: InputDecoration(
                           //hintText: '​ລາຍ​ລະ​ອຽດ',
-                          labelText: '​ປ້ອນລາຍ​ລະ​ອຽດ​ເຮືອນ'),
+                          labelText: localized.list(
+                              localized.translate, 'Enter details for lao')),
                       validator: this._validatDetails,
                       onSaved: (var value) {
                         this._data.detailes = value;
                       },
                     ),
                     TextFormField(
+                      maxLines: 4,
+                      keyboardType: TextInputType.multiline,
+                      decoration: InputDecoration(
+                          labelText: localized.list(localized.translate,
+                              'Enter details for english')),
+                      onSaved: (var value) {
+                        this._data.detailes_en = value;
+                      },
+                    ),
+                    TextFormField(
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
-                          hintText: 'ລາ​ຄາ', labelText: '​ປ້ອນລາ​ຄາ'),
+                          labelText: localized.list(
+                              localized.translate, 'Enter bedroom')),
+                      validator: this._validatBed,
+                      onSaved: (var value) {
+                        this._data.number_bed = int.parse(value);
+                      },
+                    ),
+                    TextFormField(
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                          labelText: localized.list(
+                              localized.translate, 'Enter bathroom')),
+                      validator: this._validatBath,
+                      onSaved: (var value) {
+                        this._data.number_bath = int.parse(value);
+                      },
+                    ),
+                    TextFormField(
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                          hintText:
+                              localized.list(localized.translate, 'Price'),
+                          labelText: localized.list(
+                              localized.translate, 'Enter price')),
                       onSaved: (var value) {
                         this._data.fee = value;
                       },
                       validator: this._validatFee,
                     ),
                     InputDecorator(
-                      decoration: const InputDecoration(
-                        labelText: 'ເລືອກ​ສະ​ກູນ​ເງີນ',
+                      decoration: InputDecoration(
+                        labelText: localized.list(
+                            localized.translate, 'Choose currency'),
                       ),
                       isEmpty: _data.currency == null,
                       child: new DropdownButtonHideUnderline(
@@ -370,8 +560,9 @@ class PropertiesFormState extends State<PropertiesForm> {
                       style: TextStyle(color: Colors.red, fontSize: 12.0),
                     ),
                     InputDecorator(
-                      decoration: const InputDecoration(
-                        labelText: '​ເລືອກ ​ເດືອນ/ປີ ຕໍ່​ລາ​ຄາ​',
+                      decoration: InputDecoration(
+                        labelText: localized.list(localized.translate,
+                            'Choose a month or year per price'),
                       ),
                       isEmpty: _data.per == null,
                       child: new DropdownButtonHideUnderline(
@@ -383,7 +574,10 @@ class PropertiesFormState extends State<PropertiesForm> {
                               _data.per = newValue;
                             });
                           },
-                          items: ['ເດືອນ', 'ປີ'].map((value) {
+                          items: [
+                            localized.list(localized.translate, 'Month'),
+                            localized.list(localized.translate, 'Year')
+                          ].map((value) {
                             return new DropdownMenuItem<String>(
                               value: value,
                               child: new Text(value),
@@ -396,23 +590,8 @@ class PropertiesFormState extends State<PropertiesForm> {
                       '${validateper}',
                       style: TextStyle(color: Colors.red, fontSize: 12.0),
                     ),
-                    /*Text('ປ້ອນແຜ່ນ​ທີ'),
-                    TextFormField(
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(labelText: 'ປ້ອນ longitude'),
-                      onSaved: (var value) {
-                        this._data.long = value;
-                      },
-                    ),
-                    TextFormField(
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(labelText: 'ປ້ອນ latitude'),
-                      onSaved: (var value) {
-                        this._data.lat = value;
-                      },
-                    ),*/
                     OutlineButton.icon(
-                      label: Text('ແຜ່ນ​ທີ່'),
+                      label: Text(localized.list(localized.translate, 'Map')),
                       icon: Icon(
                         Icons.map,
                         color: Colors.red,
@@ -454,7 +633,8 @@ class PropertiesFormState extends State<PropertiesForm> {
                             ),
                           ),
                     OutlineButton.icon(
-                      label: Text('ເລືອ​ກຮ​ູບ​ພາບ'),
+                      label: Text(
+                          localized.list(localized.translate, 'Choose photo')),
                       icon: Icon(
                         Icons.add_a_photo,
                         color: Colors.red,
@@ -466,7 +646,9 @@ class PropertiesFormState extends State<PropertiesForm> {
                                 content: Row(
                               children: <Widget>[
                                 OutlineButton.icon(
-                                  label: Text('GALLERY',
+                                  label: Text(
+                                      localized.list(
+                                          localized.translate, 'GALLERY'),
                                       style: TextStyle(
                                           fontSize: 10.0, color: Colors.black)),
                                   icon: Icon(
@@ -481,7 +663,9 @@ class PropertiesFormState extends State<PropertiesForm> {
                                 Padding(
                                   padding: EdgeInsets.only(left: 10.0),
                                   child: OutlineButton.icon(
-                                    label: Text('CAMERA',
+                                    label: Text(
+                                        localized.list(
+                                            localized.translate, 'CAMERA'),
                                         style: TextStyle(fontSize: 10.0)),
                                     icon: Icon(
                                       Icons.camera,
@@ -513,7 +697,7 @@ class PropertiesFormState extends State<PropertiesForm> {
                         : Text(''),
                     RaisedButton(
                       child: Text(
-                        'ບັນ​ທືກ',
+                        localized.list(localized.translate, 'Save'),
                         style: TextStyle(color: Colors.white, fontSize: 20.0),
                       ),
                       onPressed: () {
@@ -527,18 +711,4 @@ class PropertiesFormState extends State<PropertiesForm> {
             ),
     );
   }
-}
-
-class _PropertiesForm {
-  var propertye;
-  var detailes;
-  String fee;
-  String per;
-  String long;
-  String lat;
-  String datestart;
-  var package;
-  List imgname = List();
-  var userID;
-  var currency;
 }

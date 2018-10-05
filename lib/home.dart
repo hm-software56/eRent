@@ -28,29 +28,6 @@ class HomeState extends State<Home> {
 
 /*============= translate function ====================*/
   Translations localized = Translations();
-  Future loadlang() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    localized.getlang = await prefs.get('lang');
-    if (localized.lang != null && localized.getlang != localized.lang) {
-      prefs.setString('lang', localized.lang);
-      setState(() {
-        localized.getlang = localized.lang;
-      });
-    } else {
-      if (localized.getlang == null) {
-        prefs.setString('lang', localized.lanngdefault);
-        setState(() {
-          localized.getlang = localized.lanngdefault;
-        });
-      }
-    }
-    String jsonContent =
-        await rootBundle.loadString("locale/${localized.getlang}.json");
-    setState(() {
-      localized.translate = json.decode(jsonContent);
-    });
-  }
-
 /* ====================== Onsigal Push notifycation ============================= */
   _initOneSignal() async {
     var notificationsPermissionGranted = await FlutterOneSignal.startInit(
@@ -101,7 +78,7 @@ class HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    loadlang();
+    localized.loadlang();
     getToken();
     getlisthouses();
 
@@ -149,7 +126,7 @@ class HomeState extends State<Home> {
           return new AlertDialog(
             title: Center(
                 child: new Text(
-              'ອີນ​ເຕີ​ເນັດຜິດ​ພາດ',
+              localized.list(localized.translate, 'Error connection'),
             )),
             content: new SingleChildScrollView(
               child: new ListBody(

@@ -25,6 +25,7 @@ dependencies:
   money: ^0.2.1
   flutter_one_signal: ^0.2.1
   flutter_plugin_webview: ^0.0.14
+  sqljocky5: ^2.2.0
   
   
 

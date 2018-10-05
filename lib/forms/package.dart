@@ -31,29 +31,6 @@ class PackageState extends State<Package> {
 
 /*============= translate function ====================*/
   Translations localized = Translations();
-  Future loadlang() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    localized.getlang = await prefs.get('lang');
-    if (localized.lang != null && localized.getlang != localized.lang) {
-      prefs.setString('lang', localized.lang);
-      setState(() {
-        localized.getlang = localized.lang;
-      });
-    } else {
-      if (localized.getlang == null) {
-        prefs.setString('lang', localized.lanngdefault);
-        setState(() {
-          localized.getlang = localized.lanngdefault;
-        });
-      }
-    }
-    String jsonContent =
-        await rootBundle.loadString("locale/${localized.getlang}.json");
-    setState(() {
-      localized.translate = json.decode(jsonContent);
-    });
-  }
-
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
   Future<Null> getListPackages() async {
     Dio dio = Dio();
@@ -208,7 +185,7 @@ class PackageState extends State<Package> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    loadlang();
+    localized.loadlang();
     getListPackages();
   }
 

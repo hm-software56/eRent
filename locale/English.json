@@ -48,6 +48,26 @@
     "Buy package":"Buy package",
     "Choose date publish":"Choose date publish",
     "Choose package you want to buy":"Choose package you want to buy",
-    "Buy":"Buy"
+    "Buy":"Buy",
+    "Enter details house":"Enter details house",
+    "Must be enter price":"Enter price",
+    "Must be choose type house":"Choose type house",
+    "Must be choose currency":"Choose currency",
+    "Must be choose a month or year per price":"Choose a month or year per price",
+    "Must be choose photo":"Must be choose photo",
+    "Enter new house":"Enter new house",
+    "Choose type house":"Choose type house",
+    "Enter details":"Enter details",
+    "Enter price":"Enter price",
+    "Choose currency":"Choose currency",
+    "Choose a month or year per price":"Choose a month or year per price",
+    "Map":"Map",
+    "Choose photo":"Choose photo",
+    "Save":"Save",
+    "Enter details for lao":"Enter details for lao",
+    "Enter details for english":"Enter details for english",
+    "Enter bedroom":"Enter bedroom",
+    "Enter bathroom":"Enter bathroom",
+    "Must be choose province":"Must be choose province"
 
 }

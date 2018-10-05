@@ -34,6 +34,7 @@ class LoginState extends State<Login> {
     String jsonContent =
         await rootBundle.loadString("locale/${localized.getlang}.json");
     setState(() {
+      prefs.setString('langcode', localized.langcode[localized.getlang]);
       localized.translate = json.decode(jsonContent);
     });
   }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:erent/forms/getmap.dart';
 import 'package:erent/forms/viewproperties.dart';
+import 'package:erent/translations.dart';
 import 'package:erent/url_api.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -19,6 +20,9 @@ class PropertiesFormedit extends StatefulWidget {
 }
 
 class PropertiesFormeditState extends State<PropertiesFormedit> {
+  /*============= translate function ====================*/
+  Translations localized = Translations();
+
   var proID;
   var detailID;
   PropertiesFormeditState(this.proID, this.detailID);
@@ -67,8 +71,10 @@ class PropertiesFormeditState extends State<PropertiesFormedit> {
     }
     ;
 
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var langcode = await prefs.get('langcode');
     final response =
-        await dio.get('${UrlApi().url}/index.php/api/listpropertiestype');
+        await dio.get('${UrlApi().url}/index.php/api/listpropertiestype',data: {'lang':langcode});
 
     final responseCurrency =
         await dio.get('${UrlApi().url}/index.php/api/listcurrency');
